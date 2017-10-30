@@ -8,7 +8,7 @@
   <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
   <!-- <link rel="stylesheet" href="./ngc-passo-a-passo/ngc-passos.css"> -->
   <link rel="stylesheet" href="./app.css">,
-  <link rel="stylesheet" href="./public/ngcWysiwug/ngcWysiwug.css">
+  <link rel="stylesheet" href="./public/ngcWysiwyg-components.css">
   <!-- <link rel="stylesheet" href="./tinymce.css"> -->
 </head>
 
@@ -19,6 +19,7 @@
 
   <!-- Angular Material requires Angular.js Libraries -->
   <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.6.5/angular.min.js"></script>
+  <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.6.5/angular-sanitize.js"></script>
   <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.6.5/angular-animate.min.js"></script>
   <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.6.5/angular-aria.min.js"></script>
   <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.6.5/angular-messages.min.js"></script>
@@ -34,19 +35,13 @@
   <!-- <script src="./bower_components/ckeditor/ckeditor.js"></script>
   <script src="./bower_components/angular-ckeditor/angular-ckeditor.min.js"></script> -->
   <script src="./app.controller.js"></script>
-  <script src="./ngcWysiwug/ngcWysiwug.js"></script>
-  <script src="./public/ngcWysiwug-components.js"></script>
+  <script src="./public/ngcWysiwyg-components.js"></script>
   <div style="padding: 50px">
     <pre>{{content | json}}</pre>
     <!-- <textarea ui-tinymce="tinymceOptions" ng-model="tinymceModel">
         </textarea> -->
     <!-- <div ckeditor="options" ng-model="content"></div> -->
-    <ngc-wysiwyg>
-      <p class="">asdiasdjaisdjaisdjasidasdjasdasdasd 1</p>
-      <p class="">asdiasdjaisdjaisdjasidasdjasdasdasd 2</p>
-      <p class="">asdiasdjaisdjaisdjasidasdjasdasdasd 3</p>
-      <p class="">asdiasdjaisdjaisdjasidasdjasdasdasd 4</p>
-      <p class="">asdiasdjaisdjaisdjasidasdjasdasdasd 5</p>
+    <ngc-wysiwyg value='texto'>
     </ngc-wysiwyg>
     <md-button ng-click='teste()'>teste</md-button>
   </div>

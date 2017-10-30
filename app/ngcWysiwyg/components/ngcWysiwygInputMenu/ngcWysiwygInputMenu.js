@@ -3,15 +3,14 @@
 
     angular
         .module('myApp')
-        .component('ngcWysiwugTextMenu', component());
+        .component('ngcWysiwygInputMenu', component());
 
     function component() {
 
         return {
             controller: componentController,
             controllerAs: 'vm',
-            templateUrl: './public/ngcWysiwugTextMenu/ngcWysiwugTextMenu.html',
-            transclude: true,
+            templateUrl: './public/ngcWysiwygInputMenu/ngcWysiwygInputMenu.html',
             bindings: {}
         }
 

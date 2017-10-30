@@ -3,15 +3,14 @@
 
     angular
         .module('myApp')
-        .component('ngcWysiwugAlignMenu', component());
+        .component('ngcWysiwygTextMenu', component());
 
     function component() {
 
         return {
             controller: componentController,
             controllerAs: 'vm',
-            templateUrl: './public/ngcWysiwugAlignMenu/ngcWysiwugAlignMenu.html',
-            transclude: true,
+            templateUrl: './public/ngcWysiwygTextMenu/ngcWysiwygTextMenu.html',
             bindings: {}
         }
 
@@ -19,27 +18,27 @@
             var vm = this;
             vm.botoes = [
                 {
-                    icone: 'format_align_left',
+                    icone: 'format_bold',
                     callback: function () {
-                        document.execCommand('justifyLeft', null, false);
+                        document.execCommand('bold', null, false);
                     }
                 },
                 {
-                    icone: 'format_align_right',
+                    icone: 'format_italic',
                     callback: function () {
-                        document.execCommand('justifyRight', null, false);
+                        document.execCommand('italic', null, false);
                     }
                 },
                 {
-                    icone: 'format_align_justify',
+                    icone: 'format_strikethrough',
                     callback: function () {
-                        document.execCommand('justifyFull', null, false);
+                        document.execCommand('strikeThrough', null, false);
                     }
                 },
                 {
-                    icone: 'format_align_center',
+                    icone: 'format_underlined',
                     callback: function () {
-                        document.execCommand('justifyCenter', null, false);
+                        document.execCommand('underline', null, false);
                     }
                 }
             ]

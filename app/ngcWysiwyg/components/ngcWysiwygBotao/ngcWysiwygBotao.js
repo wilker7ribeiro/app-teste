@@ -3,26 +3,23 @@
 
     angular
         .module('myApp')
-        .component('ngcWysiwyg', component());
+        .component('ngcWysiwygBotao', component());
 
     function component() {
 
         return {
             controller: componentController,
             controllerAs: 'vm',
-            templateUrl: './ngcWysiwug/ngcWysiwug.html',
-            transclude: true,
-            bindings: {}
+            templateUrl: './public/ngcWysiwygBotao/ngcWysiwygBotao.html',
+            bindings: {
+                titulo: '@',
+                icone: '@',
+                callback: '<'
+            }
         }
 
         function componentController() {
-            var vm = this;
 
-            init();
-
-            function init() {
-
-            }
         }
     }
 
