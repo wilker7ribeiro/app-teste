@@ -1,0 +1,17 @@
+.header-teste{
+  position: absolute;
+  overflow: visible;
+}
+
+.header-region {
+  height: 72px;
+  overflow: hidden;
+}
+
+.arrow-navegacao {
+  width: 30px;
+  padding: 0;
+  margin: 0;
+  height: 72px;
+  min-width: 30px;
+}

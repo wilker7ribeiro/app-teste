@@ -1,0 +1,3 @@
+div
+  md-button.menu-item(ng-repeat='botao in vm.botoes', ng-click='botao.callback()')
+    md-icon {{::botao.icone}}

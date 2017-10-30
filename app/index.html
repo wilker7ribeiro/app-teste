@@ -1,0 +1,99 @@
+<html lang="en" ng-app="myApp">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- Angular Material style sheet -->
+  <link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/angular_material/1.1.0/angular-material.min.css">
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  <!-- <link rel="stylesheet" href="./ngc-passo-a-passo/ngc-passos.css"> -->
+  <link rel="stylesheet" href="./app.css">,
+  <link rel="stylesheet" href="./public/ngcWysiwug/ngcWysiwug.css">
+  <!-- <link rel="stylesheet" href="./tinymce.css"> -->
+</head>
+
+<body ng-controller="appCtrl" ng-cloak>
+  <!--
+    Your HTML content here
+  -->
+
+  <!-- Angular Material requires Angular.js Libraries -->
+  <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.6.5/angular.min.js"></script>
+  <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.6.5/angular-animate.min.js"></script>
+  <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.6.5/angular-aria.min.js"></script>
+  <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.6.5/angular-messages.min.js"></script>
+
+  <!-- Angular Material Library -->
+  <script src="https://ajax.googleapis.com/ajax/libs/angular_material/1.1.0/angular-material.min.js"></script>
+
+  <!-- <script src="./ngc-passo-a-passo/ngc-passo-a-passo.module.js"></script>
+    <script src="./ngc-passo-a-passo/ngc-passo.directive.js"></script>
+    <script src="./ngc-passo-a-passo/ngc-passos.directive.js"></script> -->
+  <!-- <script src="./tinymce/tinymce.min.js"></script>
+  <script src="./ui-tinymce/dist/tinymce.min.js"></script> -->
+  <!-- <script src="./bower_components/ckeditor/ckeditor.js"></script>
+  <script src="./bower_components/angular-ckeditor/angular-ckeditor.min.js"></script> -->
+  <script src="./app.controller.js"></script>
+  <script src="./ngcWysiwug/ngcWysiwug.js"></script>
+  <script src="./public/ngcWysiwug-components.js"></script>
+  <div style="padding: 50px">
+    <pre>{{content | json}}</pre>
+    <!-- <textarea ui-tinymce="tinymceOptions" ng-model="tinymceModel">
+        </textarea> -->
+    <!-- <div ckeditor="options" ng-model="content"></div> -->
+    <ngc-wysiwyg>
+      <p class="">asdiasdjaisdjaisdjasidasdjasdasdasd 1</p>
+      <p class="">asdiasdjaisdjaisdjasidasdjasdasdasd 2</p>
+      <p class="">asdiasdjaisdjaisdjasidasdjasdasdasd 3</p>
+      <p class="">asdiasdjaisdjaisdjasidasdjasdasdasd 4</p>
+      <p class="">asdiasdjaisdjaisdjasidasdjasdasdasd 5</p>
+    </ngc-wysiwyg>
+    <md-button ng-click='teste()'>teste</md-button>
+  </div>
+</body>
+
+</html>
+<!--
+<p style="text-align: center; font-size: 15px;"><img title="TinyMCE Logo" src="//www.tinymce.com/images/glyph-tinymce@2x.png" alt="TinyMCE Logo" width="110" height="97" />
+  </p>
+  <h1 style="text-align: center;">Welcome to the TinyMCE editor demo!</h1>
+  <h1><img style="float: right; padding: 0 0 10px 10px;" title="Tiny Husky" src="//www.tinymce.com/docs/images/tiny-husky.jpg" alt="Tiny Husky" height="320" width="304" /></h1>
+  <h2>Image Tools Plugin feature<br>Click on the image to get started</h2>
+  <p>Please try out the features provided in this image tools example.</p>
+  <p>Note that any <b>MoxieManager</b> file and image management functionality in this example is part of our commercial offering – the demo is to show the integration.</h2>
+  <h2>Got questions or need help?</h2>
+
+  <ul>
+    <li>Our <a href="https://www.tinymce.com/docs/">documentation</a> is a great resource for learning how to configure TinyMCE.</li>
+    <li>Have a specific question? Visit the <a href="https://community.tinymce.com/forum/">Community Forum</a>.</li>
+    <li>We also offer enterprise grade support as part of <a href="www.tinymce.com/pricing">TinyMCE Enterprise</a>.</li>
+  </ul>
+  <h2>A simple table to play with</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Product</th>
+        <th>Cost</th>
+        <th>Really?</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>TinyMCE</td>
+        <td>Free</td>
+        <td>YES!</td>
+      </tr>
+      <tr>
+        <td>Plupload</td>
+        <td>Free</td>
+        <td>YES!</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h2>Found a bug?</h2>
+  <p>If you think you have found a bug please create an issue on the <a href="https://github.com/tinymce/tinymce/issues">GitHub repo</a> to report it to the developers.</p>
+
+  <h2>Finally ...</h2>
+  <p>Don't forget to check out our other product <a href="http://www.plupload.com" target="_blank">Plupload</a>, your ultimate upload solution featuring HTML5 upload support.</p>
+  <p>Thanks for supporting TinyMCE! We hope it helps you and your users create great content.<br>All the best from the TinyMCE team.</p> -->
