@@ -1,3 +1,4 @@
 md-content(md-whiteframe='3')
-  md-button.floating-menu-item(ng-repeat='botao in vm.botoes', ng-click='botao.callback()')
+  ngc-wysiwyg-botao(ng-repeat='botao in vm.botoes' classe='floating-menu-item', active='botao.active()' callback='botao.callback', icone="{{::botao.icone}}", titulo="{{::botao.titulo}}")
+  //-md-button.floating-menu-item(ng-repeat='botao in vm.botoes', ng-click='botao.callback()')
     md-icon {{::botao.icone}}

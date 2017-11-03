@@ -1,0 +1,3 @@
+//- ngc-wysiwyg-botao(ng-repeat='botao in vm.botoes', callback='botao.callback', icone="{{::botao.icone}}", titulo="{{::botao.titulo}}")
+ngc-wysiwyg-botao(classe='menu-item' callback='vm.undo', icone="undo", titulo="Desfazer", disabled='!vm.canUndo()')
+ngc-wysiwyg-botao(classe='menu-item' callback='vm.redo', icone="redo", titulo="Refazer", disabled='!vm.canRedo()')

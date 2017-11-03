@@ -41,9 +41,10 @@
     <!-- <textarea ui-tinymce="tinymceOptions" ng-model="tinymceModel">
         </textarea> -->
     <!-- <div ckeditor="options" ng-model="content"></div> -->
-    <ngc-wysiwyg value='texto'>
+    <ngc-wysiwyg ng-model='texto' ng-change='teste()'>
     </ngc-wysiwyg>
     <md-button ng-click='teste()'>teste</md-button>
+    <pre>{{texto}}</pre>
   </div>
 </body>
 

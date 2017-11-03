@@ -1,1 +1,1 @@
-<md-button class="floating-menu-item" ng-click="::vm.callback()" aria-label="{{::vm.titulo}}"><md-icon>{{::vm.icone}}</md-icon></md-button>
+<md-button class="{{::vm.classe}}" ng-disabled="vm.disabled" ng-class="{'active': vm.active}" ng-mousedown="::vm.callbackFn($event)" aria-label="{{::vm.titulo}}"><md-icon>{{::vm.icone}}</md-icon></md-button>

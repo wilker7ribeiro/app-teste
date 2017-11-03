@@ -7,6 +7,20 @@
 
     function component() {
 
+        function surroundSelection(element) {
+            if (window.getSelection) {
+                var sel = window.getSelection();
+                if (sel.rangeCount) {
+                    var range = sel.getRangeAt(0)
+                    content = range.extractContents();
+                    element.appendChild(content);
+
+                    // sel.removeAllRanges();
+                    // sel.addRange(range);
+                }
+            }
+        }
+
         return {
             controller: componentController,
             controllerAs: 'vm',
@@ -18,27 +32,33 @@
             var vm = this;
             vm.botoes = [
                 {
-                    icone: 'format_bold',
+                    icone: 'format_list_bulleted',
+                    titulo: 'Lista não ordenada',
                     callback: function () {
-                        document.execCommand('bold', null, false);
+                        document.execCommand('insertUnorderedList', null, false);
                     }
                 },
                 {
-                    icone: 'format_italic',
+                    icone: 'format_list_numbered',
+                    titulo: 'Lista ordenada',
                     callback: function () {
-                        document.execCommand('italic', null, false);
+                        document.execCommand('insertOrderedList', null, false);
                     }
                 },
                 {
-                    icone: 'format_strikethrough',
+                    icone: 'format_quote',
+                    titulo: 'Inserir comentário',
                     callback: function () {
-                        document.execCommand('strikeThrough', null, false);
+                         document.execCommand('formatBlock', null, "BLOCKQUOTE");
+                        //surroundSelection(angular.element('<blockquote teste="true"></blockquote>')[0])
                     }
                 },
                 {
                     icone: 'format_underlined',
+                    titulo: 'Lista não ordenada',
                     callback: function () {
-                        document.execCommand('underline', null, false);
+                        document.execCommand('formatBlock', null, "P");
+                        document.execCommand('insertHorizontalRule  ', null, false);
                     }
                 }
             ]

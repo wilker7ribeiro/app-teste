@@ -9,38 +9,45 @@
 
         return {
             controllerAs: 'vm',
+            require: {
+                ngModelCtrl: 'ngModel'
+            },
             bindings: {
-                value: '='
+                htmlValue: '=?'
             },
             templateUrl: './public/ngcWysiwyg/ngcWysiwyg.html',
-            controller: function ($scope, $element, $timeout) {
+            controller: function ($scope, $element, $timeout, NgcWysiwygUndoFactory) {
                 var vm = this;
-                vm.imgSelected = {};
+
+                vm.undoController = NgcWysiwygUndoFactory(vm)
+                vm.imagemSelecionada;
+
+                vm.floatingMenuCtrl;
+
+                vm.divEditableElement;
+                vm.atualizarHtml;
+                vm.atualizarModel;
+                vm.mudouValor;
+
+
+                vm.aoMudarValor = function() {
+
+                }
 
                 vm.setImageSelected = function (imgElement, botoes) {
                     vm.itemSelecionado = imgElement[0]
                     vm.imagemSelecionada = true;
                 }
+                vm.removerImagemSelecionada = function () {
+                    vm.itemSelecionado = null;
+                    vm.imagemSelecionada = false;
+                }
                 vm.setBotoesMenuFlutuante = function (botoes) {
                     vm.floatingMenuCtrl.botoes = botoes;
                 }
 
-
-                this.$postLink = function postLink() {
-                    // $timeout(function () {
-                    // console.log($element)
-                    // $element.on('DOMNodeInserted', function (event) {
-                    //     if(event.srcElement.nodeName === 'P' && event.relatedNode.classList.contains('content-editable')){
-                    //         event.srcElement.classList.add('wysiwyg-paragrafo')
-                    //     }
-                    //     if(event.srcElement.nodeName === 'IMG' && event.relatedNode.classList.contains('wysiwyg-paragrafo')){
-                    //         angular.element(event.srcElement).attr('img-editor', true)
-                    //     }
-                    // })
-                    // })
-                }
                 this.$onInit = function init() {
-
+                    document.execCommand('styleWithCSS', null, true)
                 }
             }
         }

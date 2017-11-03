@@ -6,11 +6,16 @@ div.container(md-whiteframe='1')
       ngc-wysiwyg-align-menu
       md-divider
       ngc-wysiwyg-input-menu
+      md-divider
+      ngc-wysiwyg-undo-menu
+
+
   div.content-editable-container
     ngc-wysiwyg-editable-container
     //- left  == img.offsetLeft + (img.offsetWidth / 2) - (menu.offsetWidth/2)
     //- top  == img.offsetTop + (img.offsetHeight) + 8
-    ngc-wysiwyg-floating-menu(ng-class='{"hidden" : !vm.itemSelecionado}')
+    ngc-wysiwyg-floating-menu(ng-class='{"hidden" : !vm.itemSelecionado}' ng-style='{top: vm.itemSelecionado.offsetTop + (vm.itemSelecionado.offsetHeight) + 8 , left: vm.itemSelecionado.offsetLeft + (vm.itemSelecionado.offsetWidth / 2) - (vm.floatingMenuCtrl.botoes.length * 30 / 2)}')
     ngc-wysiwyg-image-resizer(ng-class='{"hidden" : !vm.imagemSelecionada}' ng-style='{top: vm.itemSelecionado.offsetTop, left: vm.itemSelecionado.offsetLeft, height: vm.itemSelecionado.offsetHeight, width: vm.itemSelecionado.offsetWidth}')
   md-button(ng-click='vm.teste()') teste
   pre {{{top: vm.itemSelecionado.offsetTop, left: vm.itemSelecionado.offsetLeft, height: vm.itemSelecionado.offsetHeight, width: vm.itemSelecionado.offsetWidth} |json}}
+  button(ng-mousedown='vm.teste($event)') teste

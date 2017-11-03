@@ -1,0 +1,12 @@
+//- @todo Criar algum componente de menu dropdown pq o ng-mousedown pra não cancelar a seleção não funciona no md-menu
+md-menu()
+  md-button.menu-item(aria-label='{{::vm.titulo}}', ng-disabled='vm.disabled' ng-mousedown='vm.abrirMenu($mdOpenMenu, $event)', ng-click='')
+    md-icon {{::vm.icone}}
+    md-icon(md-menu-origin='') arrow_drop_down
+
+  md-menu-content
+    md-menu-item(ng-repeat='botao in vm.botoes')
+      md-button(ng-mousedown='vm.callbackFn($event, botao)' aria-label='{{::botao.titulo}}')
+        div(layout='row', flex='')
+          p(flex='' style='{{::botao.style}}') {{::botao.titulo}} &nbsp;
+          md-icon(md-menu-align-target='', style='margin: auto 3px auto 0;') {{::botao.icone}}

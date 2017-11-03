@@ -12,6 +12,9 @@ ngc-wysiwyg {
                 min-width: auto;
                 padding: 5px;
                 min-height: auto;
+                &.active{
+                    background-color: lightgray;
+                }
             }
 
         }
@@ -25,6 +28,20 @@ ngc-wysiwyg {
             p {
                 margin: 0;
                 margin-bottom: 10px;
+            }
+            blockquote {
+                margin: 10px 0;
+                border-left: solid cornflowerblue 3px;
+                padding-left: 5px;
+                color: cornflowerblue;
+            }
+        }
+        img {
+            &.align-left {
+                margin: 5px 5px 5px 0;
+            }
+            &.align-right {
+                margin: 5px 0 5px 5px;
             }
         }
         ngc-wysiwyg-image-resizer {
@@ -42,11 +59,15 @@ ngc-wysiwyg {
                 min-width: auto;
                 padding: 3px;
                 min-height: auto;
+                &.active{
+                    background-color: lightgray;
+                }
             }
         }
         ngc-wysiwyg-image-resizer.hidden,
         ngc-wysiwyg-floating-menu.hidden{
-            z-index: -10
+            z-index: -10;
+            visibility: hidden;
         }
 
     }

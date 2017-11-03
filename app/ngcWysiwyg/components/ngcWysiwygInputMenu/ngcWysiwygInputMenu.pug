@@ -1,3 +1,1 @@
-div
-  md-button.menu-item(ng-repeat='botao in vm.botoes', ng-click='botao.callback()')
-    md-icon {{::botao.icone}}
+ngc-wysiwyg-botao(classe='menu-item' ng-repeat='botao in vm.botoes', callback='botao.callback', icone="{{::botao.icone}}", titulo="{{::botao.titulo}}")

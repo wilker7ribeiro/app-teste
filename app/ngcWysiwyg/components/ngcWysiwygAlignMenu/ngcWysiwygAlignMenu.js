@@ -11,17 +11,28 @@
             controller: componentController,
             controllerAs: 'vm',
             templateUrl: './public/ngcWysiwygAlignMenu/ngcWysiwygAlignMenu.html',
-            bindings: {}
+            require: {
+                ngcWysiwyg: '^^ngcWysiwyg'
+            },
+            bindings: {
+                disabled: '<'
+            }
         }
 
         function componentController() {
             var vm = this;
+            function isCursorText(type) {
+                return document.queryCommandValue(type) == 'true'
+            }
             vm.botoes = [
                 {
                     icone: 'format_align_left',
                     titulo: 'Esquerda',
                     callback: function () {
                         document.execCommand('justifyLeft', null, false);
+                    },
+                    active: function(){
+                        return isCursorText('justifyLeft');
                     }
                 },
                 {
@@ -29,6 +40,9 @@
                     titulo: 'Direita',
                     callback: function () {
                         document.execCommand('justifyRight', null, false);
+                    },
+                    active: function(){
+                        return isCursorText('justifyRight');
                     }
                 },
                 {
@@ -36,6 +50,9 @@
                     titulo: 'Justificado',
                     callback: function () {
                         document.execCommand('justifyFull', null, false);
+                    },
+                    active: function(){
+                        return isCursorText('justifyFull');
                     }
                 },
                 {
@@ -43,6 +60,9 @@
                     titulo: 'Centro',
                     callback: function () {
                         document.execCommand('justifyCenter', null, false);
+                    },
+                    active: function(){
+                        return isCursorText('justifyCenter');
                     }
                 },
                 {
@@ -54,14 +74,11 @@
                 }
             ]
             this.$onInit = function init() {
-
+                vm.disabled = function() {
+                    return vm.ngcWysiwyg.imagemSelecionada
+                }
             }
-            vm.abrirMenu = abrirMenu;
 
-
-            function abrirMenu($mdOpenMenu, $event){
-                $mdOpenMenu($event)
-            }
         }
     }
 
