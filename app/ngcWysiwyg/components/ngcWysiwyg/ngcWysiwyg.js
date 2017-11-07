@@ -26,6 +26,7 @@
 
                 vm.divEditableElement;
                 vm.atualizarHtml;
+                vm.atualizarHtmlComDOMElement;
                 vm.atualizarModel;
                 vm.mudouValor;
 

@@ -3,65 +3,6 @@
 
     angular
         .module('myApp')
-        .component('ngcWysiwyg', component());
-
-    function component() {
-
-        return {
-            controllerAs: 'vm',
-            require: {
-                ngModelCtrl: 'ngModel'
-            },
-            bindings: {
-                htmlValue: '=?'
-            },
-            templateUrl: './public/ngcWysiwyg/ngcWysiwyg.html',
-            controller: function ($scope, $element, $timeout, NgcWysiwygUndoFactory) {
-                var vm = this;
-
-                vm.undoController = NgcWysiwygUndoFactory(vm)
-                vm.imagemSelecionada;
-
-                vm.floatingMenuCtrl;
-
-                vm.divEditableElement;
-                vm.atualizarHtml;
-                vm.atualizarModel;
-                vm.mudouValor;
-
-
-                vm.aoMudarValor = function() {
-
-                }
-
-                vm.setImageSelected = function (imgElement, botoes) {
-                    vm.itemSelecionado = imgElement[0]
-                    vm.imagemSelecionada = true;
-                }
-                vm.removerImagemSelecionada = function () {
-                    vm.itemSelecionado = null;
-                    vm.imagemSelecionada = false;
-                }
-                vm.setBotoesMenuFlutuante = function (botoes) {
-                    vm.floatingMenuCtrl.botoes = botoes;
-                }
-
-                this.$onInit = function init() {
-                    document.execCommand('styleWithCSS', null, true)
-                }
-            }
-        }
-
-    }
-
-
-
-}());
-(function () {
-    'use strict';
-
-    angular
-        .module('myApp')
         .component('ngcWysiwygAlignMenu', component());
 
     function component() {
@@ -147,6 +88,66 @@
 
     angular
         .module('myApp')
+        .component('ngcWysiwyg', component());
+
+    function component() {
+
+        return {
+            controllerAs: 'vm',
+            require: {
+                ngModelCtrl: 'ngModel'
+            },
+            bindings: {
+                htmlValue: '=?'
+            },
+            templateUrl: './public/ngcWysiwyg/ngcWysiwyg.html',
+            controller: function ($scope, $element, $timeout, NgcWysiwygUndoFactory) {
+                var vm = this;
+
+                vm.undoController = NgcWysiwygUndoFactory(vm)
+                vm.imagemSelecionada;
+
+                vm.floatingMenuCtrl;
+
+                vm.divEditableElement;
+                vm.atualizarHtml;
+                vm.atualizarHtmlComDOMElement;
+                vm.atualizarModel;
+                vm.mudouValor;
+
+
+                vm.aoMudarValor = function() {
+
+                }
+
+                vm.setImageSelected = function (imgElement, botoes) {
+                    vm.itemSelecionado = imgElement[0]
+                    vm.imagemSelecionada = true;
+                }
+                vm.removerImagemSelecionada = function () {
+                    vm.itemSelecionado = null;
+                    vm.imagemSelecionada = false;
+                }
+                vm.setBotoesMenuFlutuante = function (botoes) {
+                    vm.floatingMenuCtrl.botoes = botoes;
+                }
+
+                this.$onInit = function init() {
+                    document.execCommand('styleWithCSS', null, true)
+                }
+            }
+        }
+
+    }
+
+
+
+}());
+(function () {
+    'use strict';
+
+    angular
+        .module('myApp')
         .component('ngcWysiwygBotao', component());
 
     function component() {
@@ -207,43 +208,76 @@
                         scope.$eval(attrs.ngChange);
                         ngcWysiwyg.aoMudarValor()
                     });
-
-                    // Listen for change events to enable binding
-                    element.on('keydown', function (event) {
-
-                        // inicia a gravação do step, para salvar primeiro a seleção
-
-
+                    element.on('click', function () {
+                        scope.$apply();
+                    })
+                    element.on('cut', function (event) {
                         scope.$apply(function () {
+                            ngcWysiwyg.undoController.gravarPassoTimeout()
+                            //event.preventDefault()
+                        });
+                    })
+                    element.on('paste', function (event) {
+                        if (document.queryCommandSupported('insertHTML')) {
+                            scope.$apply(function () {
+                                ngcWysiwyg.undoController.gravarPasso(function () {
+                                    var clipboardData = event.clipboardData || window.clipboardData
+                                    var texto = clipboardData.getData('text')
+                                    document.execCommand('insertHTML', null, texto)
+                                })
+                                event.preventDefault()
+                            });
+                        }
+                    })
+                    // Listen for change events to enable binding
+                    element.on('keyup', function ($event) {
+                        // atualiza a model
+                        atualizarModel()
 
+                    })
+                    element.on('keydown', function (event) {
+                        // inicia a gravação do step, para salvar primeiro a seleção
+                        // deletar
+                        scope.$apply(function () {
                             if (ngcWysiwyg.imagemSelecionada) {
                                 ngcWysiwyg.removerImagemSelecionada();
                             }
-
-                            if (event.key == 'z' && event.ctrlKey) { // CTRL + C
-                                if (stepGravando) {
-                                    $timeout.cancel(addStepTimeout)
-                                    stepGravando.rollback()
-                                    stepGravando = null;
-
-                                } else {
-                                    ngcWysiwyg.undoController.undo();
+                            if (event.ctrlKey) {
+                                if (event.key == 'z') { // CTRL + C
+                                    if (stepGravando) {
+                                        $timeout.cancel(addStepTimeout)
+                                        stepGravando.rollback()
+                                        stepGravando = null;
+                                    } else {
+                                        ngcWysiwyg.undoController.undo();
+                                    }
+                                    event.preventDefault()
+                                    return false;
+                                } else if (event.key == 'y') {
+                                    if (stepGravando) {
+                                        $timeout.cancel(addStepTimeout)
+                                        stepGravando.rollback()
+                                        stepGravando = null;
+                                    } else {
+                                        ngcWysiwyg.undoController.redo();
+                                    }
+                                    event.preventDefault()
+                                    return false;
+                                } else if (event.key == 'v') {
+                                    if (!document.queryCommandSupported('insertHTML')) {
+                                        ngcWysiwyg.undoController.gravarPasso(function () {
+                                            document.execCommand('Paste');
+                                            // var startContainer = window.getSelection().getRangeAt(0).startContainer;
+                                            // startContainer.innerHTML = startContainer.innerHTML
+                                            //window.getSelection().getRangeAt(0).endContainer.parentNode.innerHTML = window.getSelection().getRangeAt(0).endContainer.parentNode.innerHTML
+                                        })
+                                        event.preventDefault()
+                                    }
                                 }
-                                event.preventDefault()
-                                return false;
-                            } else if (event.key == 'y' && event.ctrlKey) {
-                                if (stepGravando) {
-                                    $timeout.cancel(addStepTimeout)
-                                    stepGravando.rollback()
-                                    stepGravando = null;
-                                } else {
-                                    ngcWysiwyg.undoController.redo();
-                                }
-                                event.preventDefault()
-                                return false;
+
                             }
                             // certifica que o html mudou pra poder atualizar a model e começar a gravar um step
-                            if (NgcWysiwygUtilService.isLetraNumero(event)) {
+                            else if (NgcWysiwygUtilService.isLetraNumero(event)) {
                                 if (!stepGravando) {
                                     console.log('iniciou a gravar')
                                     stepGravando = ngcWysiwyg.undoController.iniciarGravacaoParcial()
@@ -256,9 +290,6 @@
                                     stepGravando.finalizar();
                                     stepGravando = null;
                                 }, 2000)
-
-                                // atualiza a model
-                                atualizarModel()
                             }
 
                         });
@@ -720,7 +751,7 @@
             bindings: {}
         }
 
-        function componentController() {
+        function componentController(NgcWysiwygUtilService) {
             var vm = this;
 
             vm.setBold = setText('Bold')
@@ -728,7 +759,11 @@
             vm.setStrikeThrough = setText('StrikeThrough')
             vm.setUnderLine = setText('UnderLine')
             vm.isCursorText = isCursorText;
+            vm.isSelectionInsideContent = isSelectionInsideContent
 
+            function isSelectionInsideContent (){
+                return NgcWysiwygUtilService.isInsideContentEditable();
+            }
             function setText(type) {
                 return function () {
                     document.execCommand(type, null, false);
@@ -790,7 +825,7 @@
 
     angular
         .module('myApp')
-        .factory('NgcWysiwygUndoFactory', function (NgcWysiwygUtilService) {
+        .factory('NgcWysiwygUndoFactory', function (NgcWysiwygUtilService, $timeout) {
 
 
             return function NgcWysiwygUndoFactory(ngcWysiwyg) {
@@ -799,6 +834,7 @@
                     passos: [],
                     ngcWysiwyg: ngcWysiwyg,
                     gravarPasso: gravarPasso,
+                    gravarPassoTimeout: gravarPassoTimeout,
                     iniciarGravacaoParcial: iniciarGravacaoParcial,
                     atualizarComponenteParaPasso: atualizarComponenteParaPasso,
                     undo: undo,
@@ -808,30 +844,7 @@
                     gravacaoAtual: null
                 }
 
-                function getNodeTree(node) {
-                    node = angular.element(node)[0]
-                    var indexArray = []
-                    var parent = node.parentNode;
-                    while (parent.nodeName !== "NGC-WYSIWYG-EDITABLE-CONTAINER") {
-                        var index = Array.prototype.indexOf.call(parent.childNodes, node);
-                        indexArray.push(index)
-                        node = parent;
-                        parent = parent.parentNode;
-                    }
-                    return indexArray;
-                }
-                function getNodeFromTree(tree, ngcWysiwyg) {
-                    var treeCopy = tree.slice(0);
-                    var elementoPai = ngcWysiwyg.divEditableElement[0]
-                    var element;
-                    var index = treeCopy.pop()
-                    while (!angular.isUndefined(index) && index !== null) {
-                        element = elementoPai.childNodes[index]
-                        elementoPai = element;
-                        index = treeCopy.pop()
-                    }
-                    return element;
-                }
+
                 function iniciarGravacaoParcial() {
                     var self = this;
                     this.gravacaoAtual = {
@@ -852,41 +865,51 @@
                     }
                     return this.gravacaoAtual
                 }
-                function montarRangeAtual() {
+
+                function montarRange() {
                     var range = NgcWysiwygUtilService.copyRange()
+
+                    range.startContainer.parentNode.normalize()
+                    range.endContainer.parentNode.normalize()
+
                     return {
                         startOffset: range.startOffset,
                         endOffset: range.endOffset,
-                        startNodeTree: getNodeTree(range.startContainer),
-                        endNodeTree: getNodeTree(range.endContainer)
+                        startNodeTree:  NgcWysiwygUtilService.getNodeTree(range.startContainer),
+                        endNodeTree:  NgcWysiwygUtilService.getNodeTree(range.endContainer)
                     }
                 }
+
                 function iniciarGravacao() {
-                    return montarRangeAtual()
+                    return montarRange()
                 }
                 function rollbackGravacao(rangeInicial) {
                     this.ngcWysiwyg.atualizarModel(this.passos[this.passoAtualIndex].html);
                     this.ngcWysiwyg.atualizarHtml()
-                    NgcWysiwygUtilService.setRange(getNodeFromTree(rangeInicial.startNodeTree, this.ngcWysiwyg), rangeInicial.startOffset, getNodeFromTree(rangeInicial.endNodeTree, this.ngcWysiwyg), rangeInicial.endOffset);
+                    NgcWysiwygUtilService.setRange(
+                        NgcWysiwygUtilService.getNodeFromTree(rangeInicial.startNodeTree, this.ngcWysiwyg), rangeInicial.startOffset,
+                        NgcWysiwygUtilService.getNodeFromTree(rangeInicial.endNodeTree, this.ngcWysiwyg), rangeInicial.endOffset
+                    );
                 }
 
                 function finalizarGravacao(rangeInicial) {
-                    if (this.passos[this.passoAtualIndex].html !== this.ngcWysiwyg.ngModelCtrl.$viewValue) {
+                    if (this.passos[this.passoAtualIndex].html !== this.ngcWysiwyg.divEditableElement.html()) {
                         this.passos = this.passos.slice(0, this.passoAtualIndex + 1)
-                        this.passos.push({
-                            html: this.ngcWysiwyg.ngModelCtrl.$viewValue,
+                        var passo = {
+                            html: this.ngcWysiwyg.divEditableElement.html(),
                             rangeInicial: rangeInicial,
-                            rangeFinal: montarRangeAtual()
-                        })
+                            rangeFinal: montarRange()
+                        }
+                        this.passos.push(passo)
                         this.passoAtualIndex++;
-                        console.log('passo adicionado', this.passos)
+                        console.log('passo adicionado', passo, this.passos)
                     }
                 }
 
                 function undo() {
                     if (this.canUndo()) {
-                    this.atualizarComponenteParaPasso(this.passoAtualIndex - 1)
-                    this.passoAtualIndex--;
+                        this.atualizarComponenteParaPasso(this.passoAtualIndex - 1)
+                        this.passoAtualIndex--;
                     }
                 }
 
@@ -896,10 +919,21 @@
                         this.gravacaoAtual.finalizar();
                     }
                     passo()
-
                     finalizarGravacao.call(this, rangeInicial)
                 }
-
+                function gravarPassoTimeout(passo) {
+                    var self = this;
+                    var rangeInicial = iniciarGravacao.call(this)
+                    if (this.gravacaoAtual) {
+                        this.gravacaoAtual.finalizar();
+                    }
+                    if (passo) {
+                        passo()
+                    }
+                    $timeout(function () {
+                        finalizarGravacao.call(self, rangeInicial)
+                    }, 0)
+                }
                 function canUndo() {
                     return this.passoAtualIndex > 0
                 }
@@ -909,20 +943,26 @@
                     if (this.passoAtualIndex > index) {
                         var range = this.passos[index + 1].rangeInicial
                         if (range) {
-                            NgcWysiwygUtilService.setRange(getNodeFromTree(range.startNodeTree, this.ngcWysiwyg), range.startOffset, getNodeFromTree(range.endNodeTree, this.ngcWysiwyg), range.endOffset);
+                            NgcWysiwygUtilService.setRange(
+                                NgcWysiwygUtilService.getNodeFromTree(range.startNodeTree, this.ngcWysiwyg), range.startOffset,
+                                NgcWysiwygUtilService.getNodeFromTree(range.endNodeTree, this.ngcWysiwyg), range.endOffset
+                            );
                             return
                         }
                     } else {
                         var range = this.passos[index].rangeFinal
                         if (range) {
-                            NgcWysiwygUtilService.setRange(getNodeFromTree(range.startNodeTree, this.ngcWysiwyg), range.startOffset, getNodeFromTree(range.endNodeTree, this.ngcWysiwyg), range.endOffset);
+                            NgcWysiwygUtilService.setRange(
+                                NgcWysiwygUtilService.getNodeFromTree(range.startNodeTree, this.ngcWysiwyg), range.startOffset,
+                                NgcWysiwygUtilService.getNodeFromTree(range.endNodeTree, this.ngcWysiwyg), range.endOffset
+                            );
                             return
                         }
                     }
                     NgcWysiwygUtilService.clearSelection()
                 }
                 function redo(params) {
-                    if(this.canRedo()){
+                    if (this.canRedo()) {
                         this.atualizarComponenteParaPasso(this.passoAtualIndex + 1)
                         this.passoAtualIndex++
                     }
@@ -986,6 +1026,9 @@
             this.setRange = setRange;
             this.clearSelection = clearSelection;
             this.isLetraNumero = isLetraNumero;
+            this.getNodeTree = getNodeTree;
+            this.getNodeFromTree = getNodeFromTree;
+            this.isInsideContentEditable = isInsideContentEditable;
 
             function setRange(startNode, startOffset, endNode, endOffset) {
                 var selection = getSelection()
@@ -994,34 +1037,75 @@
                 newRage.setStart(startNode, startOffset)
                 newRage.setEnd(endNode, endOffset)
                 selection.addRange(newRage)
-                range.startContainer.replaceData(range.startOffset ,  range.startContainer.length, '<span>'+ range.startContainer.substringData(range.startOffset, range.startContainer.length)+'</span>')
+                // range.startContainer.replaceData(range.startOffset ,  range.startContainer.length, '<span>'+ range.startContainer.substringData(range.startOffset, range.startContainer.length)+'</span>')
             }
-            function encapsularSelecionado(node){
+            function encapsularSelecionado(node) {
                 var range = getRange()
                 var selectedTagInicial = range.startContainer.substringData(range.startOffset, range.startContainer.length)
                 var selectedTagFinal = range.endContainer.substringData(0, range.endOffset)
                 /** @todo problema com as nodes #text quando vai dar o ctrl Y depois de boldear e desboldear o mesmo texto, salva com #text separada, mas quando da ctrl Y não existe mais as #text */
             }
 
+            function isInsideContentEditable() {
+                var range = getRange()
+                if (!range) {
+                    return false;
+                }
+                return !!angular.element(range.commonAncestorContainer).controller('ngcWysiwygEditableContainer')
+            }
+
             function copyRange() {
-                return getRange().cloneRange()
+                var range = getRange()
+                if (range) {
+                    return range.cloneRange()
+                }
+                return null;
             }
             function getRange() {
-                return getSelection().getRangeAt(0)
+                var selection = getSelection()
+                if (selection.rangeCount > 0) {
+                    return getSelection().getRangeAt(0)
+                }
+                return null;
             }
 
             function getSelection() {
                 return $window.getSelection()
             }
-            function clearSelection(){
+            function clearSelection() {
                 getSelection().removeAllRanges()
             }
             function selecionarElemento(elementNode) {
                 $window.getSelection().selectAllChildren(elementNode)
             }
 
-            function isLetraNumero(event){
+            function isLetraNumero(event) {
                 return event.key.length === 1;
+            }
+
+            function getNodeTree(node) {
+                node = angular.element(node)[0]
+                var indexArray = []
+                var parent = node.parentNode;
+                while (parent.nodeName !== "NGC-WYSIWYG-EDITABLE-CONTAINER") {
+                    var index = Array.prototype.indexOf.call(parent.childNodes, node);
+                    indexArray.push(index)
+                    node = parent;
+                    parent = parent.parentNode;
+                }
+                return indexArray;
+            }
+            function getNodeFromTree(tree, ngcWysiwyg) {
+                var treeCopy = tree.slice(0);
+                var elementoPai = ngcWysiwyg.divEditableElement[0]
+                var element;
+                var index = treeCopy.pop()
+                while (!angular.isUndefined(index) && index !== null) {
+                    element = elementoPai.childNodes[index]
+                    elementoPai = element;
+                    index = treeCopy.pop()
+                }
+                return element;
             }
             // function adicionarPasso() {
             //     this.passos.push({

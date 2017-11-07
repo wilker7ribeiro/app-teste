@@ -14,7 +14,7 @@
             bindings: {}
         }
 
-        function componentController() {
+        function componentController(NgcWysiwygUtilService) {
             var vm = this;
 
             vm.setBold = setText('Bold')
@@ -22,7 +22,11 @@
             vm.setStrikeThrough = setText('StrikeThrough')
             vm.setUnderLine = setText('UnderLine')
             vm.isCursorText = isCursorText;
+            vm.isSelectionInsideContent = isSelectionInsideContent
 
+            function isSelectionInsideContent (){
+                return NgcWysiwygUtilService.isInsideContentEditable();
+            }
             function setText(type) {
                 return function () {
                     document.execCommand(type, null, false);
