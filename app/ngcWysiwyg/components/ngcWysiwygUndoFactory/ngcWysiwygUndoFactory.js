@@ -44,17 +44,118 @@
                     return this.gravacaoAtual
                 }
 
+                function normalize(nodeInicial, nodeSelected, offset) {
+                    var retorno = {};
+                    if (!nodeInicial) { return; }
+                    var block = nodeInicial.firstChild
+                    while (block) {
+                        if(block.nodeType === 3){
+                            if (block === nodeSelected) {
+                                retorno.nodeSelected = block;
+                                retorno.offset = offset;
+                            }
+                            var nodeIrmao = block.nextSibling
+                            while (nodeIrmao && nodeIrmao.nodeType === 3) {
+                                if (nodeIrmao === nodeSelected) {
+                                    retorno.nodeSelected = block;
+                                    retorno.offset = block.nodeValue.length + offset;
+                                }
+                                block.nodeValue += nodeIrmao.nodeValue;
+                                nodeInicial.removeChild(nodeIrmao);
+                                var nodeIrmao = block.nextSibling;
+                            }
+                        }
+                        block = block.nextSibling
+                    }
+                    return retorno;
+                }
+                function getTextNodeWithTextFrom(element, text, cb) {
+                    for (var i = 0; i < element.childNodes.length; i++) {
+                        var childNode = element.childNodes[i];
+                        if ([1, 9, 11].indexOf(childNode.nodeType)) {
+                            if (childNode.data.indexOf(text)) {
+                                cb(childNode)
+                            }
+                        }
+                    }
+                }
                 function montarRange() {
-                    var range = NgcWysiwygUtilService.copyRange()
 
-                    range.startContainer.parentNode.normalize()
-                    range.endContainer.parentNode.normalize()
+
+                    var range = NgcWysiwygUtilService.copyRange()
+                    var ua = window.navigator.userAgent;
+                    var msie = ua.indexOf("MSIE ") !== -1;
+
+                    //if (msie){
+                    //if (range.startContainer === range.endContainer) {
+                    // var originalStart = range.startContainer;
+                    // var originalEnd = range.endContainer;
+                    // var startParent = range.startContainer.parentNode;
+                    // var endParent = range.endContainer.parentNode;
+                    // var startText;
+                    // var endText;
+                    // var startNode;
+                    // var endNode;
+                    // if (range.startContainer === range.endContainer) {
+                    //     startText = range.startContainer.textContent.slice(range.startOffset, range.endOffset);
+                    //     endText = startText;
+                    // } else {
+                    //     startText = range.startContainer.textContent.slice(range.startOffset);
+                    //     endText = range.endContainer.textContent.slice(0, range.endOffset)
+                    // }
+                    var originalStart = range.startContainer;
+                    var originalEnd = range.endContainer;
+                    var originalStartParent = originalStart.parentNode;
+                    var originalEndParent = originalEnd.parentNode
+                    var originalStartOffset = range.startOffset;
+                    var originalEndOffset = range.endOffset;
+                    var retornoNormalizeStart
+                    var retornoNormalizeEnd
+                    if(originalStart !== originalEnd){
+                        retornoNormalizeStart = normalize(originalStartParent, originalStart, originalStartOffset)
+                        retornoNormalizeEnd = normalize(originalEndParent, originalEnd, originalEndOffset)
+                    } else {
+                        retornoNormalizeStart = normalize(originalStartParent, originalStart, originalStartOffset)
+                        retornoNormalizeEnd = { nodeSelected: retornoNormalizeStart.nodeSelected, offset: retornoNormalizeStart.offset + (originalEndOffset - originalStartOffset)}
+                    }
+
+                    // var startOffset
+                    // var endOffset = endParent.textContent.indexOf(endText) + endText.length
+                    // if (range.startContainer.nodeName !== '#text') {
+                    //     getTextNodeWithTextFrom(startParent, startText, function (textNode) {
+                    //         startNode = textNode
+                    //         startOffset = textNode.data.indexOf(startText)
+                    //     })
+                    // } else {
+                    //     startNode = range.startContainer
+                    //     startOffset = startParent.textContent.indexOf(startText)
+                    // }
+                    // if (range.endContainer.nodeName !== '#text') {
+                    //     getTextNodeWithTextFrom(endParent, endText, function (textNode) {
+                    //         endNode = textNode
+                    //         endOffset = textNode.data.indexOf(endText) + endText.length;
+                    //     })
+                    // } else {
+                    //     endNode = range.endContainer
+                    //     endOffset = endParent.textContent.indexOf(endText) + endText.length;
+                    // }
+                    NgcWysiwygUtilService.setRange(
+                        retornoNormalizeStart.nodeSelected, retornoNormalizeStart.offset,
+                        retornoNormalizeEnd.nodeSelected, retornoNormalizeEnd.offset
+                    )
+                    //}
+
+                    // } else {
+                    //     range.startContainer.parentNode.normalize()
+                    //     range.endContainer.parentNode.normalize()
+                    // }
+
 
                     return {
-                        startOffset: range.startOffset,
-                        endOffset: range.endOffset,
-                        startNodeTree:  NgcWysiwygUtilService.getNodeTree(range.startContainer),
-                        endNodeTree:  NgcWysiwygUtilService.getNodeTree(range.endContainer)
+                        startOffset: retornoNormalizeStart.offset,
+                        endOffset: retornoNormalizeEnd.offset,
+                        startNodeTree: NgcWysiwygUtilService.getNodeTree(retornoNormalizeStart.nodeSelected),
+                        endNodeTree: NgcWysiwygUtilService.getNodeTree(retornoNormalizeEnd.nodeSelected)
                     }
                 }
 
