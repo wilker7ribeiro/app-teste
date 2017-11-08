@@ -46,23 +46,24 @@
 
                 function normalize(nodeInicial, nodeSelected, offset) {
                     var retorno = {};
+
                     if (!nodeInicial) { return; }
                     var block = nodeInicial.firstChild
                     while (block) {
-                        if(block.nodeType === 3){
+                        if (block.nodeType === Node.TEXT_NODE) {
                             if (block === nodeSelected) {
                                 retorno.nodeSelected = block;
                                 retorno.offset = offset;
                             }
                             var nodeIrmao = block.nextSibling
-                            while (nodeIrmao && nodeIrmao.nodeType === 3) {
+                            while (nodeIrmao && nodeIrmao.nodeType === Node.TEXT_NODE) {
                                 if (nodeIrmao === nodeSelected) {
                                     retorno.nodeSelected = block;
                                     retorno.offset = block.nodeValue.length + offset;
                                 }
                                 block.nodeValue += nodeIrmao.nodeValue;
                                 nodeInicial.removeChild(nodeIrmao);
-                                var nodeIrmao = block.nextSibling;
+                                nodeIrmao = block.nextSibling;
                             }
                         }
                         block = block.nextSibling
@@ -79,77 +80,86 @@
                         }
                     }
                 }
+                function isConnected(node) {
+                    if (node.nodeType === Node.TEXT_NODE) {
+                        return !!node.parentNode
+                    } else {
+                        return document.contains(node);
+                    }
+                }
+
+                function prepararRangeFinal(range) {
+                    var offset = range.endOffset;
+                    var node = range.endContainer
+                    var length = node.textContent.length
+                    var parent = node.parentNode;
+                    while (node.nodeType !== Node.TEXT_NODE) {
+                        node = node.childNodes[offset - 1]
+                        parent = node.parentNode;
+                        length = node.textContent.length
+                        offset = length
+                    }
+                    return {
+                        node: node,
+                        offset: offset,
+                        parent: parent,
+                        length: length
+                    }
+                }
+                function prepararRangeInicial(range) {
+                    var offset = range.startOffset;
+                    var node = range.startContainer
+                    var length = node.textContent.length
+                    var parent = node.parentNode;
+                    while (node.nodeType !== Node.TEXT_NODE) {
+                        node = node.childNodes[offset - 1]
+                        parent = node.parentNode;
+                        length = node.textContent.length
+                        offset = 0
+                    }
+                    return {
+                        node: node,
+                        offset: offset,
+                        parent: parent,
+                        length: length
+                    }
+                }
                 function montarRange() {
 
 
                     var range = NgcWysiwygUtilService.copyRange()
-                    var ua = window.navigator.userAgent;
-                    var msie = ua.indexOf("MSIE ") !== -1;
+                    //var ua = window.navigator.userAgent;
+                    //var msie = ua.indexOf("MSIE ") !== -1;
 
                     //if (msie){
-                    //if (range.startContainer === range.endContainer) {
-                    // var originalStart = range.startContainer;
-                    // var originalEnd = range.endContainer;
-                    // var startParent = range.startContainer.parentNode;
-                    // var endParent = range.endContainer.parentNode;
-                    // var startText;
-                    // var endText;
-                    // var startNode;
-                    // var endNode;
-                    // if (range.startContainer === range.endContainer) {
-                    //     startText = range.startContainer.textContent.slice(range.startOffset, range.endOffset);
-                    //     endText = startText;
-                    // } else {
-                    //     startText = range.startContainer.textContent.slice(range.startOffset);
-                    //     endText = range.endContainer.textContent.slice(0, range.endOffset)
-                    // }
-                    var originalStart = range.startContainer;
-                    var originalEnd = range.endContainer;
-                    var originalStartParent = originalStart.parentNode;
-                    var originalEndParent = originalEnd.parentNode
-                    var originalStartOffset = range.startOffset;
-                    var originalEndOffset = range.endOffset;
+                    var selectedText = range.cloneContents().textContent
+                    var originalStart = prepararRangeInicial(range)
+                    var originalEnd = prepararRangeFinal(range)
+
+
                     var retornoNormalizeStart
                     var retornoNormalizeEnd
-                    if(originalStart !== originalEnd){
-                        retornoNormalizeStart = normalize(originalStartParent, originalStart, originalStartOffset)
-                        retornoNormalizeEnd = normalize(originalEndParent, originalEnd, originalEndOffset)
+                    if (originalStart.node !== originalEnd.node) {
+                        retornoNormalizeStart = normalize(originalStart.parent, originalStart.node, originalStart.offset)
+                        if (!isConnected(originalEnd.node)) {
+                            retornoNormalizeEnd = {
+                                nodeSelected: retornoNormalizeStart.nodeSelected,
+                                offset: originalStart.offset + selectedText.length
+                                //offset: originalStart.length + originalEnd.offset // caso desboldeia o elemento todo
+                                //offset: retornoNormalizeStart.nodeSelected.textContent.length // caso boldeia metade de um elemento já boldeado
+                            }
+                        } else {
+                            retornoNormalizeEnd = normalize(originalEnd.parent, originalEnd.node, originalEnd.offset)
+                        }
                     } else {
-                        retornoNormalizeStart = normalize(originalStartParent, originalStart, originalStartOffset)
-                        retornoNormalizeEnd = { nodeSelected: retornoNormalizeStart.nodeSelected, offset: retornoNormalizeStart.offset + (originalEndOffset - originalStartOffset)}
+                        retornoNormalizeStart = normalize(originalStart.parent, originalStart.node, originalStart.offset)
+                        retornoNormalizeEnd = { nodeSelected: retornoNormalizeStart.nodeSelected, offset: retornoNormalizeStart.offset + (originalEnd.offset - originalStart.offset) }
                     }
 
-                    // var startOffset
-                    // var endOffset = endParent.textContent.indexOf(endText) + endText.length
-                    // if (range.startContainer.nodeName !== '#text') {
-                    //     getTextNodeWithTextFrom(startParent, startText, function (textNode) {
-                    //         startNode = textNode
-                    //         startOffset = textNode.data.indexOf(startText)
-                    //     })
-                    // } else {
-                    //     startNode = range.startContainer
-                    //     startOffset = startParent.textContent.indexOf(startText)
-                    // }
-                    // if (range.endContainer.nodeName !== '#text') {
-                    //     getTextNodeWithTextFrom(endParent, endText, function (textNode) {
-                    //         endNode = textNode
-                    //         endOffset = textNode.data.indexOf(endText) + endText.length;
-                    //     })
-                    // } else {
-                    //     endNode = range.endContainer
-                    //     endOffset = endParent.textContent.indexOf(endText) + endText.length;
-                    // }
                     NgcWysiwygUtilService.setRange(
                         retornoNormalizeStart.nodeSelected, retornoNormalizeStart.offset,
                         retornoNormalizeEnd.nodeSelected, retornoNormalizeEnd.offset
                     )
-                    //}
-
-                    // } else {
-                    //     range.startContainer.parentNode.normalize()
-                    //     range.endContainer.parentNode.normalize()
-                    // }
-
 
                     return {
                         startOffset: retornoNormalizeStart.offset,

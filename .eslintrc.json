@@ -1,0 +1,36 @@
+{
+  "env": {
+    "browser": true,
+    "commonjs": true,
+    "es6": false,
+    "node": true
+  },
+  "globals": {
+    "angular": true
+  },
+  "plugins": [
+    "angular"
+  ],
+  "extends": [
+    "eslint:recommended",
+    "plugin:angular/johnpapa"
+  ],
+  "parserOptions": {
+    "ecmaFeatures": {
+      "jsx": true
+    },
+    "sourceType": "module"
+  },
+  "rules": {
+    "angular/file-name": 0,
+    "angular/function-type": 0,
+    "angular/no-service-method": 0,
+    "no-const-assign": "error",
+    "no-this-before-super": "error",
+    "no-undef": "error",
+    "no-unreachable": "error",
+    "no-unused-vars": "error",
+    "constructor-super": "error",
+    "valid-typeof": "error"
+  }
+}
