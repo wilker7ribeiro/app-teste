@@ -21,7 +21,7 @@
                                 vm.ngcWysiwyg.setImageSelected($element)
                                 vm.ngcWysiwyg.setBotoesMenuFlutuante(vm.botoesMenuFlutuante)
                                 vm.ngcWysiwyg.floatingMenuCtrl.goToElement($element)
-                                NgcWysiwygUtilService.selecionarElemento($element[0])
+                                //NgcWysiwygUtilService.clearSelection();
                             })
                         })
 

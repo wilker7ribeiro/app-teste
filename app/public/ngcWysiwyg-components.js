@@ -48,7 +48,10 @@
                 }
 
                 this.$onInit = function init() {
+                }
+                this.$postLink = function(){
                     document.execCommand('styleWithCSS', null, true)
+                    document.execCommand("enableObjectResizing", false, false);
                 }
             }
         }
@@ -81,8 +84,9 @@
 
         function componentController() {
             var vm = this;
-            function isCursorText(type) {
-                return document.queryCommandValue(type) == 'true'
+            function isCursorText(type, alternativo) {
+                var result = document.queryCommandValue(type);
+                return result === 'true' || result === true || result === alternativo
             }
             vm.botoes = [
                 {
@@ -92,7 +96,7 @@
                         document.execCommand('justifyLeft', null, false);
                     },
                     active: function(){
-                        return isCursorText('justifyLeft');
+                        return isCursorText('justifyLeft', "left");
                     }
                 },
                 {
@@ -102,7 +106,7 @@
                         document.execCommand('justifyRight', null, false);
                     },
                     active: function(){
-                        return isCursorText('justifyRight');
+                        return isCursorText('justifyRight', "right");
                     }
                 },
                 {
@@ -112,7 +116,7 @@
                         document.execCommand('justifyFull', null, false);
                     },
                     active: function(){
-                        return isCursorText('justifyFull');
+                        return isCursorText('justifyFull', "justify");
                     }
                 },
                 {
@@ -122,7 +126,7 @@
                         document.execCommand('justifyCenter', null, false);
                     },
                     active: function(){
-                        return isCursorText('justifyCenter');
+                        return isCursorText('justifyCenter', "center");
                     }
                 },
                 {
@@ -211,10 +215,9 @@
                     element.on('click', function () {
                         scope.$apply();
                     })
-                    element.on('cut', function (event) {
+                    element.on('cut', function () {
                         scope.$apply(function () {
                             ngcWysiwyg.undoController.gravarPassoTimeout()
-                            //event.preventDefault()
                         });
                     })
                     element.on('paste', function (event) {
@@ -230,11 +233,14 @@
                         }
                     })
                     // Listen for change events to enable binding
-                    element.on('keyup', function ($event) {
+                    element.on('keyup', function () {
                         // atualiza a model
                         atualizarModel()
 
                     })
+                    element.on('mscontrolselect', function (evt) {
+                        //evt.preventDefault();
+                    });
                     element.on('keydown', function (event) {
                         // inicia a gravação do step, para salvar primeiro a seleção
                         // deletar
@@ -243,7 +249,24 @@
                                 ngcWysiwyg.removerImagemSelecionada();
                             }
                             if (event.ctrlKey) {
-                                if (event.key == 'z') { // CTRL + C
+                                if (event.key == 'b') {
+                                    executarComando('Bold');
+                                    event.preventDefault()
+                                }
+                                if (event.key == 'i') {
+                                    executarComando('Italic');
+                                    event.preventDefault()
+                                }
+                                if (event.key == 'u') {
+                                    executarComando('UnderLine');
+                                    event.preventDefault()
+                                }
+                                if (event.key == 's') {
+                                    executarComando('StrikeThrough');
+                                    event.preventDefault()
+                                }
+
+                                if (event.key == 'z') {
                                     if (stepGravando) {
                                         $timeout.cancel(addStepTimeout)
                                         stepGravando.rollback()
@@ -265,12 +288,7 @@
                                     return false;
                                 } else if (event.key == 'v') {
                                     if (!document.queryCommandSupported('insertHTML')) {
-                                        ngcWysiwyg.undoController.gravarPasso(function () {
-                                            document.execCommand('Paste');
-                                            // var startContainer = window.getSelection().getRangeAt(0).startContainer;
-                                            // startContainer.innerHTML = startContainer.innerHTML
-                                            //window.getSelection().getRangeAt(0).endContainer.parentNode.innerHTML = window.getSelection().getRangeAt(0).endContainer.parentNode.innerHTML
-                                        })
+                                        executarComando('Paste');
                                         event.preventDefault()
                                     }
                                 }
@@ -296,6 +314,11 @@
 
                     });
 
+                    function executarComando(comando, value) {
+                        ngcWysiwyg.undoController.gravarPasso(function () {
+                            document.execCommand(comando, false, value)
+                        })
+                    }
 
                     function init() {
 
@@ -463,7 +486,7 @@
                                 vm.ngcWysiwyg.setImageSelected($element)
                                 vm.ngcWysiwyg.setBotoesMenuFlutuante(vm.botoesMenuFlutuante)
                                 vm.ngcWysiwyg.floatingMenuCtrl.goToElement($element)
-                                NgcWysiwygUtilService.selecionarElemento($element[0])
+                                //NgcWysiwygUtilService.clearSelection();
                             })
                         })
 
@@ -770,7 +793,8 @@
                 }
             }
             function isCursorText(type) {
-                return document.queryCommandValue(type) == 'true'
+                var queryComandResult = document.queryCommandValue(type);
+                return queryComandResult === 'true' || queryComandResult === true
             }
 
             vm.menuFontFamilty = {
@@ -910,35 +934,37 @@
                     }
                 }
 
-                function prepararRangeFinal(range) {
-                    var offset = range.endOffset;
-                    var node = range.endContainer
-                    var length = node.textContent.length
-                    var parent = node.parentNode;
-                    while (node.nodeType !== Node.TEXT_NODE) {
-                        node = node.childNodes[offset - 1]
-                        parent = node.parentNode;
-                        length = node.textContent.length
-                        offset = length
+                function getNearTextNode(node) {
+                    var irmaoDireita = node.nextSibling
+                    while (irmaoDireita && irmaoDireita.nodeType !== Node.TEXT_NODE) {
+                        irmaoDireita = irmaoDireita.nextSibling;
                     }
-                    return {
-                        node: node,
-                        offset: offset,
-                        parent: parent,
-                        length: length
+                    if (!irmaoDireita) {
+                        var irmaoEsquerda = node.nextSibling
+                        while (irmaoEsquerda && irmaoEsquerda.nodeType !== Node.TEXT_NODE) {
+                            irmaoEsquerda = irmaoDireita.previousSibling;
+                        }
+                        if (!irmaoEsquerda) {
+                            return getNearTextNode(node.parent);
+                        }
+                        return;
                     }
+                    return irmaoDireita;
                 }
-                function prepararRangeInicial(range) {
-                    var offset = range.startOffset;
-                    var node = range.startContainer
-                    var length = node.textContent.length
-                    var parent = node.parentNode;
+                function prepararRange(range, final) {
+
+                    var node = final ? range.endContainer : range.startContainer
+                    var offset = final ? range.endOffset : range.startOffset;
                     while (node.nodeType !== Node.TEXT_NODE) {
-                        node = node.childNodes[offset - 1]
-                        parent = node.parentNode;
-                        length = node.textContent.length
-                        offset = 0
+                        if (node.childNodes.length <= 0 && node.nodeType !== Node.TEXT_NODE) {
+                            node = getNearTextNode(node)
+                        } else {
+                            node = node.childNodes[offset - 1]
+                        }
+                        offset = final ? node.textContent.length : 0
                     }
+                    var parent = node.parentNode;
+                    var length = node.textContent.length
                     return {
                         node: node,
                         offset: offset,
@@ -950,13 +976,12 @@
 
 
                     var range = NgcWysiwygUtilService.copyRange()
-                    //var ua = window.navigator.userAgent;
-                    //var msie = ua.indexOf("MSIE ") !== -1;
-
-                    //if (msie){
+                    if (!range) {
+                        return null;
+                    }
                     var selectedText = range.cloneContents().textContent
-                    var originalStart = prepararRangeInicial(range)
-                    var originalEnd = prepararRangeFinal(range)
+                    var originalStart = prepararRange(range, false)
+                    var originalEnd = prepararRange(range, true)
 
 
                     var retornoNormalizeStart
@@ -966,9 +991,8 @@
                         if (!isConnected(originalEnd.node)) {
                             retornoNormalizeEnd = {
                                 nodeSelected: retornoNormalizeStart.nodeSelected,
-                                offset: originalStart.offset + selectedText.length
-                                //offset: originalStart.length + originalEnd.offset // caso desboldeia o elemento todo
-                                //offset: retornoNormalizeStart.nodeSelected.textContent.length // caso boldeia metade de um elemento já boldeado
+                                //offset: originalStart.offset + selectedText.length
+                                offset: retornoNormalizeStart.offset + selectedText.length
                             }
                         } else {
                             retornoNormalizeEnd = normalize(originalEnd.parent, originalEnd.node, originalEnd.offset)

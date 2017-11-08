@@ -33,7 +33,8 @@
                 }
             }
             function isCursorText(type) {
-                return document.queryCommandValue(type) == 'true'
+                var queryComandResult = document.queryCommandValue(type);
+                return queryComandResult === 'true' || queryComandResult === true
             }
 
             vm.menuFontFamilty = {

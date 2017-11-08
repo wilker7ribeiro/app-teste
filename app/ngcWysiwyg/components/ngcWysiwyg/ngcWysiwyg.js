@@ -48,7 +48,10 @@
                 }
 
                 this.$onInit = function init() {
+                }
+                this.$postLink = function(){
                     document.execCommand('styleWithCSS', null, true)
+                    document.execCommand("enableObjectResizing", false, false);
                 }
             }
         }

@@ -88,35 +88,37 @@
                     }
                 }
 
-                function prepararRangeFinal(range) {
-                    var offset = range.endOffset;
-                    var node = range.endContainer
-                    var length = node.textContent.length
-                    var parent = node.parentNode;
-                    while (node.nodeType !== Node.TEXT_NODE) {
-                        node = node.childNodes[offset - 1]
-                        parent = node.parentNode;
-                        length = node.textContent.length
-                        offset = length
+                function getNearTextNode(node) {
+                    var irmaoDireita = node.nextSibling
+                    while (irmaoDireita && irmaoDireita.nodeType !== Node.TEXT_NODE) {
+                        irmaoDireita = irmaoDireita.nextSibling;
                     }
-                    return {
-                        node: node,
-                        offset: offset,
-                        parent: parent,
-                        length: length
+                    if (!irmaoDireita) {
+                        var irmaoEsquerda = node.nextSibling
+                        while (irmaoEsquerda && irmaoEsquerda.nodeType !== Node.TEXT_NODE) {
+                            irmaoEsquerda = irmaoDireita.previousSibling;
+                        }
+                        if (!irmaoEsquerda) {
+                            return getNearTextNode(node.parent);
+                        }
+                        return;
                     }
+                    return irmaoDireita;
                 }
-                function prepararRangeInicial(range) {
-                    var offset = range.startOffset;
-                    var node = range.startContainer
-                    var length = node.textContent.length
-                    var parent = node.parentNode;
+                function prepararRange(range, final) {
+
+                    var node = final ? range.endContainer : range.startContainer
+                    var offset = final ? range.endOffset : range.startOffset;
                     while (node.nodeType !== Node.TEXT_NODE) {
-                        node = node.childNodes[offset - 1]
-                        parent = node.parentNode;
-                        length = node.textContent.length
-                        offset = 0
+                        if (node.childNodes.length <= 0 && node.nodeType !== Node.TEXT_NODE) {
+                            node = getNearTextNode(node)
+                        } else {
+                            node = node.childNodes[offset - 1]
+                        }
+                        offset = final ? node.textContent.length : 0
                     }
+                    var parent = node.parentNode;
+                    var length = node.textContent.length
                     return {
                         node: node,
                         offset: offset,
@@ -128,13 +130,12 @@
 
 
                     var range = NgcWysiwygUtilService.copyRange()
-                    //var ua = window.navigator.userAgent;
-                    //var msie = ua.indexOf("MSIE ") !== -1;
-
-                    //if (msie){
+                    if (!range) {
+                        return null;
+                    }
                     var selectedText = range.cloneContents().textContent
-                    var originalStart = prepararRangeInicial(range)
-                    var originalEnd = prepararRangeFinal(range)
+                    var originalStart = prepararRange(range, false)
+                    var originalEnd = prepararRange(range, true)
 
 
                     var retornoNormalizeStart
@@ -144,9 +145,8 @@
                         if (!isConnected(originalEnd.node)) {
                             retornoNormalizeEnd = {
                                 nodeSelected: retornoNormalizeStart.nodeSelected,
-                                offset: originalStart.offset + selectedText.length
-                                //offset: originalStart.length + originalEnd.offset // caso desboldeia o elemento todo
-                                //offset: retornoNormalizeStart.nodeSelected.textContent.length // caso boldeia metade de um elemento já boldeado
+                                //offset: originalStart.offset + selectedText.length
+                                offset: retornoNormalizeStart.offset + selectedText.length
                             }
                         } else {
                             retornoNormalizeEnd = normalize(originalEnd.parent, originalEnd.node, originalEnd.offset)

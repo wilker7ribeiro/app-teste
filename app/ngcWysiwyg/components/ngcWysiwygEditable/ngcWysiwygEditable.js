@@ -25,10 +25,9 @@
                     element.on('click', function () {
                         scope.$apply();
                     })
-                    element.on('cut', function (event) {
+                    element.on('cut', function () {
                         scope.$apply(function () {
                             ngcWysiwyg.undoController.gravarPassoTimeout()
-                            //event.preventDefault()
                         });
                     })
                     element.on('paste', function (event) {
@@ -44,11 +43,14 @@
                         }
                     })
                     // Listen for change events to enable binding
-                    element.on('keyup', function ($event) {
+                    element.on('keyup', function () {
                         // atualiza a model
                         atualizarModel()
 
                     })
+                    element.on('mscontrolselect', function (evt) {
+                        //evt.preventDefault();
+                    });
                     element.on('keydown', function (event) {
                         // inicia a gravação do step, para salvar primeiro a seleção
                         // deletar
@@ -57,7 +59,24 @@
                                 ngcWysiwyg.removerImagemSelecionada();
                             }
                             if (event.ctrlKey) {
-                                if (event.key == 'z') { // CTRL + C
+                                if (event.key == 'b') {
+                                    executarComando('Bold');
+                                    event.preventDefault()
+                                }
+                                if (event.key == 'i') {
+                                    executarComando('Italic');
+                                    event.preventDefault()
+                                }
+                                if (event.key == 'u') {
+                                    executarComando('UnderLine');
+                                    event.preventDefault()
+                                }
+                                if (event.key == 's') {
+                                    executarComando('StrikeThrough');
+                                    event.preventDefault()
+                                }
+
+                                if (event.key == 'z') {
                                     if (stepGravando) {
                                         $timeout.cancel(addStepTimeout)
                                         stepGravando.rollback()
@@ -79,12 +98,7 @@
                                     return false;
                                 } else if (event.key == 'v') {
                                     if (!document.queryCommandSupported('insertHTML')) {
-                                        ngcWysiwyg.undoController.gravarPasso(function () {
-                                            document.execCommand('Paste');
-                                            // var startContainer = window.getSelection().getRangeAt(0).startContainer;
-                                            // startContainer.innerHTML = startContainer.innerHTML
-                                            //window.getSelection().getRangeAt(0).endContainer.parentNode.innerHTML = window.getSelection().getRangeAt(0).endContainer.parentNode.innerHTML
-                                        })
+                                        executarComando('Paste');
                                         event.preventDefault()
                                     }
                                 }
@@ -110,6 +124,11 @@
 
                     });
 
+                    function executarComando(comando, value) {
+                        ngcWysiwyg.undoController.gravarPasso(function () {
+                            document.execCommand(comando, false, value)
+                        })
+                    }
 
                     function init() {
 

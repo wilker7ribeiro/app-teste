@@ -21,8 +21,9 @@
 
         function componentController() {
             var vm = this;
-            function isCursorText(type) {
-                return document.queryCommandValue(type) == 'true'
+            function isCursorText(type, alternativo) {
+                var result = document.queryCommandValue(type);
+                return result === 'true' || result === true || result === alternativo
             }
             vm.botoes = [
                 {
@@ -32,7 +33,7 @@
                         document.execCommand('justifyLeft', null, false);
                     },
                     active: function(){
-                        return isCursorText('justifyLeft');
+                        return isCursorText('justifyLeft', "left");
                     }
                 },
                 {
@@ -42,7 +43,7 @@
                         document.execCommand('justifyRight', null, false);
                     },
                     active: function(){
-                        return isCursorText('justifyRight');
+                        return isCursorText('justifyRight', "right");
                     }
                 },
                 {
@@ -52,7 +53,7 @@
                         document.execCommand('justifyFull', null, false);
                     },
                     active: function(){
-                        return isCursorText('justifyFull');
+                        return isCursorText('justifyFull', "justify");
                     }
                 },
                 {
@@ -62,7 +63,7 @@
                         document.execCommand('justifyCenter', null, false);
                     },
                     active: function(){
-                        return isCursorText('justifyCenter');
+                        return isCursorText('justifyCenter', "center");
                     }
                 },
                 {
