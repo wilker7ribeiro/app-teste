@@ -49,15 +49,12 @@
 
                     })
                     element.on('mscontrolselect', function (evt) {
-                        //evt.preventDefault();
+                        evt.preventDefault();
                     });
                     element.on('keydown', function (event) {
                         // inicia a gravação do step, para salvar primeiro a seleção
                         // deletar
                         scope.$apply(function () {
-                            if (ngcWysiwyg.imagemSelecionada) {
-                                ngcWysiwyg.removerImagemSelecionada();
-                            }
                             if (event.ctrlKey) {
                                 if (event.key == 'b') {
                                     executarComando('Bold');
@@ -106,6 +103,9 @@
                             }
                             // certifica que o html mudou pra poder atualizar a model e começar a gravar um step
                             else if (NgcWysiwygUtilService.isLetraNumero(event)) {
+                                if (ngcWysiwyg.imagemSelecionada) {
+                                    ngcWysiwyg.removerImagemSelecionada();
+                                }
                                 if (!stepGravando) {
                                     console.log('iniciou a gravar')
                                     stepGravando = ngcWysiwyg.undoController.iniciarGravacaoParcial()
@@ -147,7 +147,8 @@
 
                     function compileImgs() {
                         var imgs = element.find('img')
-                        angular.element(imgs).attr('ngc-wysiwyg-image', true)
+                        imgs.attr('ngc-wysiwyg-image', true)
+                        imgs.attr('contenteditable', false)
                         $compile(imgs)(scope)
                     }
 

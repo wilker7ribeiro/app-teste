@@ -1,1 +1,1 @@
-<ngc-wysiwyg-botao classe="menu-item" callback="vm.undo" icone="undo" titulo="Desfazer" disabled="!vm.canUndo()"></ngc-wysiwyg-botao><ngc-wysiwyg-botao classe="menu-item" callback="vm.redo" icone="redo" titulo="Refazer" disabled="!vm.canRedo()"></ngc-wysiwyg-botao>
+<md-button class="menu-item" ng-repeat="botao in vm.botoes" ng-disabled="!botao.disabled()" ng-mousedown="::botao.callback()" aria-label="{{::botao.titulo}}"><md-icon>{{::botao.icone}}</md-icon></md-button>

@@ -19,11 +19,10 @@
             }
         }
 
-        function componentController() {
+        function componentController(NgcWysiwygUtilService) {
             var vm = this;
             function isCursorText(type, alternativo) {
-                var result = document.queryCommandValue(type);
-                return result === 'true' || result === true || result === alternativo
+                 return NgcWysiwygUtilService.queryCommand(type, alternativo);
             }
             vm.botoes = [
                 {

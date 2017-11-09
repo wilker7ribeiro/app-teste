@@ -1,3 +1,6 @@
 //- ngc-wysiwyg-botao(ng-repeat='botao in vm.botoes', callback='botao.callback', icone="{{::botao.icone}}", titulo="{{::botao.titulo}}")
-ngc-wysiwyg-botao(classe='menu-item' callback='vm.undo', icone="undo", titulo="Desfazer", disabled='!vm.canUndo()')
-ngc-wysiwyg-botao(classe='menu-item' callback='vm.redo', icone="redo", titulo="Refazer", disabled='!vm.canRedo()')
+md-button.menu-item(ng-repeat='botao in vm.botoes' ng-disabled='!botao.disabled()'  ng-mousedown='::botao.callback()', aria-label='{{::botao.titulo}}')
+    md-icon {{::botao.icone}}
+
+//- ngc-wysiwyg-botao(classe='menu-item' callback='vm.undo', icone="undo", titulo="Desfazer", disabled='!vm.canUndo()')
+//- ngc-wysiwyg-botao(classe='menu-item' callback='vm.redo', icone="redo", titulo="Refazer", disabled='!vm.canRedo()')

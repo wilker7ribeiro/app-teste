@@ -49,6 +49,34 @@ ngc-wysiwyg {
             position: absolute;
             border: solid 1px #1e88e5;
             box-sizing: content-box;
+            .ngc-wysiwyg-handler{
+
+                position: absolute;
+                height: 6px;
+                width: 6px;
+                background: blue;
+
+                &.top-right {
+                    cursor: ne-resize;
+                    top: -3;
+                    right: -3;
+                }
+                &.top-left {
+                    cursor: nw-resize;
+                    top: -3;
+                    left: -3;
+                }
+                &.bottom-right {
+                    cursor: se-resize;
+                    bottom: -3;
+                    right: -3;
+                }
+                &.bottom-left {
+                    cursor: sw-resize;
+                    bottom: -3;
+                    left: -3;
+                }
+            }
         }
         ngc-wysiwyg-floating-menu {
             border-top: black solid 4px;

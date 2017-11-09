@@ -10,24 +10,34 @@
             require: {
                 ngcWysiwyg: '^^ngcWysiwyg'
             },
-            controller: function componentController(NgcWysiwygUndoFactory) {
+            controller: function componentController() {
                 var vm = this;
 
-                vm.undo = undo;
-                vm.redo = redo;
-                vm.canUndo = canUndo;
-                vm.canRedo = canRedo;
+                vm.botoes = [
+                    {
+                        disabled: canUndo,
+                        titulo: 'Desfazer',
+                        callback: undo,
+                        icone: 'undo'
+                    },
+                    {
+                        disabled: canRedo,
+                        titulo: 'Refazer',
+                        callback: redo,
+                        icone: 'redo'
+                    }
+                ]
 
-                function undo(type) {
+                function undo() {
                     vm.ngcWysiwyg.undoController.undo()
                 }
-                function redo(type) {
+                function redo() {
                     vm.ngcWysiwyg.undoController.redo()
                 }
-                function canUndo(type) {
+                function canUndo() {
                     return vm.ngcWysiwyg.undoController.canUndo()
                 }
-                function canRedo(type) {
+                function canRedo() {
                     return vm.ngcWysiwyg.undoController.canRedo()
                 }
 

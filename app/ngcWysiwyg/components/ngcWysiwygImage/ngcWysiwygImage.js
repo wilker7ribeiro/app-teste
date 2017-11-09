@@ -12,8 +12,10 @@
                     ngcWysiwyg: '^^ngcWysiwyg'
                 },
                 controllerAs: 'vm',
-                controller: function ($scope, $element, $compile, $document, NgcWysiwygUtilService) {
+                controller: function ($scope, $element, $compile, $document) {
                     var vm = this;
+
+
                     this.$onInit = function () {
 
                         $element.on('click', function () {
@@ -40,11 +42,12 @@
 
                         var onClickFora = function (event) {
                             var isImage = event.target.nodeName === "IMG";
+                            var isResizer = !!angular.element(event.target).controller('ngcWysiwygImageResizer')
                             /** @todo o que é mais performatico? */
                             // isFloatingButton(event.target)
                             var isFloatingButton = !!angular.element(event.target).controller('ngcWysiwygFloatingMenu')
 
-                            if (!isImage && !isFloatingButton) {
+                            if (!isImage && !isFloatingButton && !isResizer) {
                                 $scope.$apply(vm.ngcWysiwyg.removerImagemSelecionada)
                             }
                         }

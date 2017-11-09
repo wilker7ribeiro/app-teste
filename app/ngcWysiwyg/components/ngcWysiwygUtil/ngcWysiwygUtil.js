@@ -15,7 +15,17 @@
             this.getNodeTree = getNodeTree;
             this.getNodeFromTree = getNodeFromTree;
             this.isInsideContentEditable = isInsideContentEditable;
+            this.isConnected = isConnected;
+            this.getNearestTextNode = getNearestTextNode;
+            this.queryCommand = queryCommand;
 
+            function queryCommand(type, alternativo) {
+                if (getRange()) {
+                    var queryComandResult = document.queryCommandValue(type);
+                    return queryComandResult === 'true' || queryComandResult === true || queryComandResult === alternativo;
+                }
+                return false;
+            }
             function setRange(startNode, startOffset, endNode, endOffset) {
                 var selection = getSelection()
                 selection.removeAllRanges()
@@ -59,7 +69,10 @@
                 return $window.getSelection()
             }
             function clearSelection() {
-                getSelection().removeAllRanges()
+                var selecao = getSelection()
+                if (selecao) {
+                    selecao.removeAllRanges()
+                }
             }
             function selecionarElemento(elementNode) {
                 $window.getSelection().selectAllChildren(elementNode)
@@ -67,6 +80,33 @@
 
             function isLetraNumero(event) {
                 return event.key.length === 1;
+            }
+
+            function isConnected(node) {
+                if (node.nodeType === Node.TEXT_NODE) {
+                    return !!node.parentNode
+                } else {
+                    return document.contains(node);
+                }
+            }
+
+            function getNearestTextNode(node) {
+
+                var irmaoDireita = node.nextSibling
+                while (irmaoDireita && irmaoDireita.nodeType !== Node.TEXT_NODE) {
+                    irmaoDireita = irmaoDireita.nextSibling;
+                }
+                if (!irmaoDireita) {
+                    var irmaoEsquerda = node.previousSibling
+                    while (irmaoEsquerda && irmaoEsquerda.nodeType !== Node.TEXT_NODE) {
+                        irmaoEsquerda = irmaoEsquerda.previousSibling;
+                    }
+                    if (!irmaoEsquerda) {
+                        return getNearestTextNode(node.parentNode);
+                    }
+                    return irmaoEsquerda;
+                }
+                return irmaoDireita;
             }
 
             function getNodeTree(node) {
@@ -85,6 +125,9 @@
                 var treeCopy = tree.slice(0);
                 var elementoPai = ngcWysiwyg.divEditableElement[0]
                 var element;
+                if (tree.length <= 0) {
+                    return elementoPai
+                }
                 var index = treeCopy.pop()
                 while (!angular.isUndefined(index) && index !== null) {
                     element = elementoPai.childNodes[index]

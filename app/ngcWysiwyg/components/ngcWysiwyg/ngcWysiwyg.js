@@ -16,7 +16,7 @@
                 htmlValue: '=?'
             },
             templateUrl: './public/ngcWysiwyg/ngcWysiwyg.html',
-            controller: function ($scope, $element, $timeout, NgcWysiwygUndoFactory) {
+            controller: function ($scope, $element, $timeout, NgcWysiwygUndoFactory, NgcWysiwygUtilService) {
                 var vm = this;
 
                 vm.undoController = NgcWysiwygUndoFactory(vm)
@@ -34,9 +34,13 @@
                 vm.aoMudarValor = function() {
 
                 }
+                vm.setItemSelecionado = function(element){
+                     vm.itemSelecionado = element
 
-                vm.setImageSelected = function (imgElement, botoes) {
-                    vm.itemSelecionado = imgElement[0]
+                }
+                vm.setImageSelected = function (imgElement) {
+                    vm.setItemSelecionado(imgElement)
+                    NgcWysiwygUtilService.clearSelection();
                     vm.imagemSelecionada = true;
                 }
                 vm.removerImagemSelecionada = function () {

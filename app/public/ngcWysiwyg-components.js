@@ -16,7 +16,7 @@
                 htmlValue: '=?'
             },
             templateUrl: './public/ngcWysiwyg/ngcWysiwyg.html',
-            controller: function ($scope, $element, $timeout, NgcWysiwygUndoFactory) {
+            controller: function ($scope, $element, $timeout, NgcWysiwygUndoFactory, NgcWysiwygUtilService) {
                 var vm = this;
 
                 vm.undoController = NgcWysiwygUndoFactory(vm)
@@ -34,9 +34,13 @@
                 vm.aoMudarValor = function() {
 
                 }
+                vm.setItemSelecionado = function(element){
+                     vm.itemSelecionado = element
 
-                vm.setImageSelected = function (imgElement, botoes) {
-                    vm.itemSelecionado = imgElement[0]
+                }
+                vm.setImageSelected = function (imgElement) {
+                    vm.setItemSelecionado(imgElement)
+                    NgcWysiwygUtilService.clearSelection();
                     vm.imagemSelecionada = true;
                 }
                 vm.removerImagemSelecionada = function () {
@@ -82,11 +86,10 @@
             }
         }
 
-        function componentController() {
+        function componentController(NgcWysiwygUtilService) {
             var vm = this;
             function isCursorText(type, alternativo) {
-                var result = document.queryCommandValue(type);
-                return result === 'true' || result === true || result === alternativo
+                 return NgcWysiwygUtilService.queryCommand(type, alternativo);
             }
             vm.botoes = [
                 {
@@ -239,15 +242,12 @@
 
                     })
                     element.on('mscontrolselect', function (evt) {
-                        //evt.preventDefault();
+                        evt.preventDefault();
                     });
                     element.on('keydown', function (event) {
                         // inicia a gravação do step, para salvar primeiro a seleção
                         // deletar
                         scope.$apply(function () {
-                            if (ngcWysiwyg.imagemSelecionada) {
-                                ngcWysiwyg.removerImagemSelecionada();
-                            }
                             if (event.ctrlKey) {
                                 if (event.key == 'b') {
                                     executarComando('Bold');
@@ -296,6 +296,9 @@
                             }
                             // certifica que o html mudou pra poder atualizar a model e começar a gravar um step
                             else if (NgcWysiwygUtilService.isLetraNumero(event)) {
+                                if (ngcWysiwyg.imagemSelecionada) {
+                                    ngcWysiwyg.removerImagemSelecionada();
+                                }
                                 if (!stepGravando) {
                                     console.log('iniciou a gravar')
                                     stepGravando = ngcWysiwyg.undoController.iniciarGravacaoParcial()
@@ -337,7 +340,8 @@
 
                     function compileImgs() {
                         var imgs = element.find('img')
-                        angular.element(imgs).attr('ngc-wysiwyg-image', true)
+                        imgs.attr('ngc-wysiwyg-image', true)
+                        imgs.attr('contenteditable', false)
                         $compile(imgs)(scope)
                     }
 
@@ -392,7 +396,7 @@
                     $element.on('DOMNodeInserted', function (event) {
 
                         /** @todo mover para o componente de upload quando existir */
-                        if (event.srcElement.nodeName === 'IMG') {
+                        if (event.srcElement && event.srcElement.nodeName === 'IMG') {
                             $compile(angular.element(event.srcElement).attr('ngc-wysiwyg-image', true))($scope)
                         }
                     })
@@ -477,8 +481,10 @@
                     ngcWysiwyg: '^^ngcWysiwyg'
                 },
                 controllerAs: 'vm',
-                controller: function ($scope, $element, $compile, $document, NgcWysiwygUtilService) {
+                controller: function ($scope, $element, $compile, $document) {
                     var vm = this;
+
+
                     this.$onInit = function () {
 
                         $element.on('click', function () {
@@ -505,11 +511,12 @@
 
                         var onClickFora = function (event) {
                             var isImage = event.target.nodeName === "IMG";
+                            var isResizer = !!angular.element(event.target).controller('ngcWysiwygImageResizer')
                             /** @todo o que é mais performatico? */
                             // isFloatingButton(event.target)
                             var isFloatingButton = !!angular.element(event.target).controller('ngcWysiwygFloatingMenu')
 
-                            if (!isImage && !isFloatingButton) {
+                            if (!isImage && !isFloatingButton && !isResizer) {
                                 $scope.$apply(vm.ngcWysiwyg.removerImagemSelecionada)
                             }
                         }
@@ -612,10 +619,76 @@
             require: {
                 ngcWysiwyg: '^^ngcWysiwyg'
             },
-            controller: function () {
+            controller: function ($document, $scope) {
                 var vm = this;
-
+                var mousePositionY;
+                var mousePositionX;
+                var resizeSimetrico;
+                var widthOriginal;
+                var heightOriginal;
+                var stepGravando
                 this.$onInit = function init() {
+                    vm.ngcWysiwyg.undoController.afterUndo.push(function(){
+                        vm.ngcWysiwyg.removerImagemSelecionada();
+                    })
+                    function resizeHandler($event) {
+                        $scope.$apply(function () {
+                              resize($event)
+                        })
+                    }
+
+
+                    vm.ativarResize = function ($event) {
+                        $event.preventDefault()
+                        stepGravando = vm.ngcWysiwyg.undoController.iniciarGravacaoParcial()
+                        mousePositionX = $event.clientX
+                        mousePositionY = $event.clientY
+
+                        var imagem = vm.ngcWysiwyg.itemSelecionado
+                        widthOriginal = imagem[0].clientWidth;
+                        heightOriginal = imagem[0].clientHeight;
+
+                        $document.bind('mousemove', resizeHandler);
+                        $document.bind('mouseup', desativarResize);
+                    }
+                    function desativarResize($event) {
+                        stepGravando.finalizar();
+                        resizeSimetrico = false;
+                        $document.unbind('mousemove', resizeHandler);
+                        $document.unbind('mouseup', desativarResize);
+                    }
+
+                    function resize($event) {
+                        var imagem = vm.ngcWysiwyg.itemSelecionado
+
+                        var widthAtual = imagem[0].clientWidth;
+                        var heightAtual = imagem[0].clientHeight;
+
+                        var moveX = $event.clientX - mousePositionX
+                        var moveY = $event.clientY - mousePositionY
+                        if ($event.ctrlKey) {
+                            if (!resizeSimetrico) {
+                                // Transforma o tamanho atual para um tamanho simétrico
+                                moveX = widthAtual - widthOriginal;
+                                widthAtual = widthOriginal;
+                                heightAtual = heightOriginal;
+                            }
+                            // ativa a flag para não transformar novamente
+                            resizeSimetrico = true;
+                            // iguala o moveY e moveX para que heigth e width cresçam proporcionalmente
+                            moveY = moveX
+                        } else {
+                            resizeSimetrico = false;
+                        }
+                        var novaWidth = widthAtual + moveX
+                        var novoHeight = heightAtual + moveY
+
+                        imagem.css('width', novaWidth)
+                        mousePositionX = $event.clientX;
+
+                        imagem.css('height', novoHeight)
+                        mousePositionY = $event.clientY;
+                    }
                     vm.botoes = [
                         {
                             icone: 'format_bold',
@@ -792,9 +865,8 @@
                     document.execCommand(type, null, false);
                 }
             }
-            function isCursorText(type) {
-                var queryComandResult = document.queryCommandValue(type);
-                return queryComandResult === 'true' || queryComandResult === true
+            function isCursorText(type, alternativo) {
+                return NgcWysiwygUtilService.queryCommand(type, alternativo)
             }
 
             vm.menuFontFamilty = {
@@ -862,11 +934,13 @@
                     iniciarGravacaoParcial: iniciarGravacaoParcial,
                     atualizarComponenteParaPasso: atualizarComponenteParaPasso,
                     undo: undo,
+                    afterUndo: [],
                     canUndo: canUndo,
                     redo: redo,
                     canRedo: canRedo,
                     gravacaoAtual: null
                 }
+
 
 
                 function iniciarGravacaoParcial() {
@@ -914,53 +988,30 @@
                         }
                         block = block.nextSibling
                     }
+                    if (Object.keys(retorno).length <= 0) {
+                        retorno = {
+                            nodeSelected: nodeSelected,
+                            offset: offset
+                        }
+                    }
                     return retorno;
                 }
-                function getTextNodeWithTextFrom(element, text, cb) {
-                    for (var i = 0; i < element.childNodes.length; i++) {
-                        var childNode = element.childNodes[i];
-                        if ([1, 9, 11].indexOf(childNode.nodeType)) {
-                            if (childNode.data.indexOf(text)) {
-                                cb(childNode)
-                            }
-                        }
-                    }
-                }
-                function isConnected(node) {
-                    if (node.nodeType === Node.TEXT_NODE) {
-                        return !!node.parentNode
-                    } else {
-                        return document.contains(node);
-                    }
-                }
 
-                function getNearTextNode(node) {
-                    var irmaoDireita = node.nextSibling
-                    while (irmaoDireita && irmaoDireita.nodeType !== Node.TEXT_NODE) {
-                        irmaoDireita = irmaoDireita.nextSibling;
-                    }
-                    if (!irmaoDireita) {
-                        var irmaoEsquerda = node.nextSibling
-                        while (irmaoEsquerda && irmaoEsquerda.nodeType !== Node.TEXT_NODE) {
-                            irmaoEsquerda = irmaoDireita.previousSibling;
-                        }
-                        if (!irmaoEsquerda) {
-                            return getNearTextNode(node.parent);
-                        }
-                        return;
-                    }
-                    return irmaoDireita;
-                }
                 function prepararRange(range, final) {
 
-                    var node = final ? range.endContainer : range.startContainer
+                    var nodeInicial = final ? range.endContainer : range.startContainer
+                    if (!NgcWysiwygUtilService.isInsideContentEditable(node)) {
+                        return null
+                    }
                     var offset = final ? range.endOffset : range.startOffset;
-                    while (node.nodeType !== Node.TEXT_NODE) {
-                        if (node.childNodes.length <= 0 && node.nodeType !== Node.TEXT_NODE) {
-                            node = getNearTextNode(node)
-                        } else {
-                            node = node.childNodes[offset - 1]
-                        }
+                    var node = nodeInicial;
+                    while (node && node.nodeType !== Node.TEXT_NODE) {
+                        node = node.childNodes[offset - 1]
+                    }
+                    if (!node) {
+                        node = final ? range.endContainer : range.startContainer
+                        offset = final ? range.endOffset : range.startOffset;
+                    } else if (node !== nodeInicial && node.nodeType === Node.TEXT_NODE) {
                         offset = final ? node.textContent.length : 0
                     }
                     var parent = node.parentNode;
@@ -983,12 +1034,15 @@
                     var originalStart = prepararRange(range, false)
                     var originalEnd = prepararRange(range, true)
 
+                    if (!originalEnd || !originalStart) {
+                        return null
+                    }
 
                     var retornoNormalizeStart
                     var retornoNormalizeEnd
                     if (originalStart.node !== originalEnd.node) {
                         retornoNormalizeStart = normalize(originalStart.parent, originalStart.node, originalStart.offset)
-                        if (!isConnected(originalEnd.node)) {
+                        if (!NgcWysiwygUtilService.isConnected(originalEnd.node)) {
                             retornoNormalizeEnd = {
                                 nodeSelected: retornoNormalizeStart.nodeSelected,
                                 //offset: originalStart.offset + selectedText.length
@@ -1045,6 +1099,9 @@
                     if (this.canUndo()) {
                         this.atualizarComponenteParaPasso(this.passoAtualIndex - 1)
                         this.passoAtualIndex--;
+                        angular.forEach(this.afterUndo, function (fn) {
+                            fn();
+                        })
                     }
                 }
 
@@ -1123,24 +1180,34 @@
             require: {
                 ngcWysiwyg: '^^ngcWysiwyg'
             },
-            controller: function componentController(NgcWysiwygUndoFactory) {
+            controller: function componentController() {
                 var vm = this;
 
-                vm.undo = undo;
-                vm.redo = redo;
-                vm.canUndo = canUndo;
-                vm.canRedo = canRedo;
+                vm.botoes = [
+                    {
+                        disabled: canUndo,
+                        titulo: 'Desfazer',
+                        callback: undo,
+                        icone: 'undo'
+                    },
+                    {
+                        disabled: canRedo,
+                        titulo: 'Refazer',
+                        callback: redo,
+                        icone: 'redo'
+                    }
+                ]
 
-                function undo(type) {
+                function undo() {
                     vm.ngcWysiwyg.undoController.undo()
                 }
-                function redo(type) {
+                function redo() {
                     vm.ngcWysiwyg.undoController.redo()
                 }
-                function canUndo(type) {
+                function canUndo() {
                     return vm.ngcWysiwyg.undoController.canUndo()
                 }
-                function canRedo(type) {
+                function canRedo() {
                     return vm.ngcWysiwyg.undoController.canRedo()
                 }
 
@@ -1164,7 +1231,17 @@
             this.getNodeTree = getNodeTree;
             this.getNodeFromTree = getNodeFromTree;
             this.isInsideContentEditable = isInsideContentEditable;
+            this.isConnected = isConnected;
+            this.getNearestTextNode = getNearestTextNode;
+            this.queryCommand = queryCommand;
 
+            function queryCommand(type, alternativo) {
+                if (getRange()) {
+                    var queryComandResult = document.queryCommandValue(type);
+                    return queryComandResult === 'true' || queryComandResult === true || queryComandResult === alternativo;
+                }
+                return false;
+            }
             function setRange(startNode, startOffset, endNode, endOffset) {
                 var selection = getSelection()
                 selection.removeAllRanges()
@@ -1208,7 +1285,10 @@
                 return $window.getSelection()
             }
             function clearSelection() {
-                getSelection().removeAllRanges()
+                var selecao = getSelection()
+                if (selecao) {
+                    selecao.removeAllRanges()
+                }
             }
             function selecionarElemento(elementNode) {
                 $window.getSelection().selectAllChildren(elementNode)
@@ -1216,6 +1296,33 @@
 
             function isLetraNumero(event) {
                 return event.key.length === 1;
+            }
+
+            function isConnected(node) {
+                if (node.nodeType === Node.TEXT_NODE) {
+                    return !!node.parentNode
+                } else {
+                    return document.contains(node);
+                }
+            }
+
+            function getNearestTextNode(node) {
+
+                var irmaoDireita = node.nextSibling
+                while (irmaoDireita && irmaoDireita.nodeType !== Node.TEXT_NODE) {
+                    irmaoDireita = irmaoDireita.nextSibling;
+                }
+                if (!irmaoDireita) {
+                    var irmaoEsquerda = node.previousSibling
+                    while (irmaoEsquerda && irmaoEsquerda.nodeType !== Node.TEXT_NODE) {
+                        irmaoEsquerda = irmaoEsquerda.previousSibling;
+                    }
+                    if (!irmaoEsquerda) {
+                        return getNearestTextNode(node.parentNode);
+                    }
+                    return irmaoEsquerda;
+                }
+                return irmaoDireita;
             }
 
             function getNodeTree(node) {
@@ -1234,6 +1341,9 @@
                 var treeCopy = tree.slice(0);
                 var elementoPai = ngcWysiwyg.divEditableElement[0]
                 var element;
+                if (tree.length <= 0) {
+                    return elementoPai
+                }
                 var index = treeCopy.pop()
                 while (!angular.isUndefined(index) && index !== null) {
                     element = elementoPai.childNodes[index]

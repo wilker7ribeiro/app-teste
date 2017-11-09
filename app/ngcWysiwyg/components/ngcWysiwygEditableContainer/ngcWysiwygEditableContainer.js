@@ -25,7 +25,7 @@
                     $element.on('DOMNodeInserted', function (event) {
 
                         /** @todo mover para o componente de upload quando existir */
-                        if (event.srcElement.nodeName === 'IMG') {
+                        if (event.srcElement && event.srcElement.nodeName === 'IMG') {
                             $compile(angular.element(event.srcElement).attr('ngc-wysiwyg-image', true))($scope)
                         }
                     })

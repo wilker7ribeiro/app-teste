@@ -16,11 +16,13 @@
                     iniciarGravacaoParcial: iniciarGravacaoParcial,
                     atualizarComponenteParaPasso: atualizarComponenteParaPasso,
                     undo: undo,
+                    afterUndo: [],
                     canUndo: canUndo,
                     redo: redo,
                     canRedo: canRedo,
                     gravacaoAtual: null
                 }
+
 
 
                 function iniciarGravacaoParcial() {
@@ -68,53 +70,30 @@
                         }
                         block = block.nextSibling
                     }
+                    if (Object.keys(retorno).length <= 0) {
+                        retorno = {
+                            nodeSelected: nodeSelected,
+                            offset: offset
+                        }
+                    }
                     return retorno;
                 }
-                function getTextNodeWithTextFrom(element, text, cb) {
-                    for (var i = 0; i < element.childNodes.length; i++) {
-                        var childNode = element.childNodes[i];
-                        if ([1, 9, 11].indexOf(childNode.nodeType)) {
-                            if (childNode.data.indexOf(text)) {
-                                cb(childNode)
-                            }
-                        }
-                    }
-                }
-                function isConnected(node) {
-                    if (node.nodeType === Node.TEXT_NODE) {
-                        return !!node.parentNode
-                    } else {
-                        return document.contains(node);
-                    }
-                }
 
-                function getNearTextNode(node) {
-                    var irmaoDireita = node.nextSibling
-                    while (irmaoDireita && irmaoDireita.nodeType !== Node.TEXT_NODE) {
-                        irmaoDireita = irmaoDireita.nextSibling;
-                    }
-                    if (!irmaoDireita) {
-                        var irmaoEsquerda = node.nextSibling
-                        while (irmaoEsquerda && irmaoEsquerda.nodeType !== Node.TEXT_NODE) {
-                            irmaoEsquerda = irmaoDireita.previousSibling;
-                        }
-                        if (!irmaoEsquerda) {
-                            return getNearTextNode(node.parent);
-                        }
-                        return;
-                    }
-                    return irmaoDireita;
-                }
                 function prepararRange(range, final) {
 
-                    var node = final ? range.endContainer : range.startContainer
+                    var nodeInicial = final ? range.endContainer : range.startContainer
+                    if (!NgcWysiwygUtilService.isInsideContentEditable(node)) {
+                        return null
+                    }
                     var offset = final ? range.endOffset : range.startOffset;
-                    while (node.nodeType !== Node.TEXT_NODE) {
-                        if (node.childNodes.length <= 0 && node.nodeType !== Node.TEXT_NODE) {
-                            node = getNearTextNode(node)
-                        } else {
-                            node = node.childNodes[offset - 1]
-                        }
+                    var node = nodeInicial;
+                    while (node && node.nodeType !== Node.TEXT_NODE) {
+                        node = node.childNodes[offset - 1]
+                    }
+                    if (!node) {
+                        node = final ? range.endContainer : range.startContainer
+                        offset = final ? range.endOffset : range.startOffset;
+                    } else if (node !== nodeInicial && node.nodeType === Node.TEXT_NODE) {
                         offset = final ? node.textContent.length : 0
                     }
                     var parent = node.parentNode;
@@ -137,12 +116,15 @@
                     var originalStart = prepararRange(range, false)
                     var originalEnd = prepararRange(range, true)
 
+                    if (!originalEnd || !originalStart) {
+                        return null
+                    }
 
                     var retornoNormalizeStart
                     var retornoNormalizeEnd
                     if (originalStart.node !== originalEnd.node) {
                         retornoNormalizeStart = normalize(originalStart.parent, originalStart.node, originalStart.offset)
-                        if (!isConnected(originalEnd.node)) {
+                        if (!NgcWysiwygUtilService.isConnected(originalEnd.node)) {
                             retornoNormalizeEnd = {
                                 nodeSelected: retornoNormalizeStart.nodeSelected,
                                 //offset: originalStart.offset + selectedText.length
@@ -199,6 +181,9 @@
                     if (this.canUndo()) {
                         this.atualizarComponenteParaPasso(this.passoAtualIndex - 1)
                         this.passoAtualIndex--;
+                        angular.forEach(this.afterUndo, function (fn) {
+                            fn();
+                        })
                     }
                 }
 

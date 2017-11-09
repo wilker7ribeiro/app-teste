@@ -32,9 +32,8 @@
                     document.execCommand(type, null, false);
                 }
             }
-            function isCursorText(type) {
-                var queryComandResult = document.queryCommandValue(type);
-                return queryComandResult === 'true' || queryComandResult === true
+            function isCursorText(type, alternativo) {
+                return NgcWysiwygUtilService.queryCommand(type, alternativo)
             }
 
             vm.menuFontFamilty = {
