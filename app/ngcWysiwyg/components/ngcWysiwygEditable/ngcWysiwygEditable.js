@@ -60,6 +60,9 @@
                                     executarComando('Bold');
                                     event.preventDefault()
                                 }
+                                if (event.key === 'Backspace' || event.key === 'Delete' || event.key === 'Del') {
+                                    ngcWysiwyg.undoController.gravarPassoTimeout()
+                                }
                                 if (event.key == 'i') {
                                     executarComando('Italic');
                                     event.preventDefault()
@@ -83,7 +86,8 @@
                                     }
                                     event.preventDefault()
                                     return false;
-                                } else if (event.key == 'y') {
+                                }
+                                if (event.key == 'y') {
                                     if (stepGravando) {
                                         $timeout.cancel(addStepTimeout)
                                         stepGravando.rollback()
@@ -93,7 +97,8 @@
                                     }
                                     event.preventDefault()
                                     return false;
-                                } else if (event.key == 'v') {
+                                }
+                                if (event.key == 'v') {
                                     if (!document.queryCommandSupported('insertHTML')) {
                                         executarComando('Paste');
                                         event.preventDefault()
@@ -102,7 +107,7 @@
 
                             }
                             // certifica que o html mudou pra poder atualizar a model e começar a gravar um step
-                            else if (NgcWysiwygUtilService.isLetraNumero(event)) {
+                            else if (NgcWysiwygUtilService.isLetraNumero(event) || event.key === 'Backspace') {
                                 if (ngcWysiwyg.imagemSelecionada) {
                                     ngcWysiwyg.removerImagemSelecionada();
                                 }
