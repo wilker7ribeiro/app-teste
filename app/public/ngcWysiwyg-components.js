@@ -496,6 +496,7 @@
                             })
                         })
 
+
                         // function isFloatingButton (element){
                         //     var achou = false
                         //     parentNode = element
@@ -537,36 +538,33 @@
                                 icone: 'format_align_left',
                                 titulo: 'Esquerda',
                                 callback: function () {
-                                    $element.css('float', 'left');
-                                    $element.addClass('align-left')
-                                    $element.removeClass('align-right')
+                                    $element.addClass('float-left')
+                                    $element.removeClass('float-right')
                                 },
                                 active: function () {
-                                    return $element.hasClass('align-left')
+                                    return $element.hasClass('float-left')
                                 }
                             },
                             {
                                 icone: 'format_align_right',
                                 titulo: 'Direita',
                                 callback: function () {
-                                    $element.css('float', 'right');
-                                    $element.addClass('align-right')
-                                    $element.removeClass('align-left')
+                                    $element.addClass('float-right')
+                                    $element.removeClass('float-left')
                                 },
                                 active: function () {
-                                    return $element.hasClass('align-right')
+                                    return $element.hasClass('float-right')
                                 }
                             },
                             {
                                 icone: 'format_align_justify',
                                 titulo: 'Justificado',
                                 callback: function () {
-                                    $element.css('float', null);
-                                    $element.removeClass('align-left')
-                                    $element.removeClass('align-right')
+                                    $element.removeClass('float-left')
+                                    $element.removeClass('float-right')
                                 },
                                 active: function () {
-                                    return !$element.hasClass('align-left') && !$element.hasClass('align-right')
+                                    return !$element.hasClass('float-left') && !$element.hasClass('float-right')
                                 }
                             },
                             {
