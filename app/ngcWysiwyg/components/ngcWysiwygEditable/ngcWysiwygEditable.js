@@ -22,6 +22,9 @@
                         scope.$eval(attrs.ngChange);
                         ngcWysiwyg.aoMudarValor()
                     });
+                    element.on('dragstart', function () {
+                        ngcWysiwyg.undoController.gravarPassoTimeout()
+                    })
                     element.on('click', function () {
                         scope.$apply();
                     })

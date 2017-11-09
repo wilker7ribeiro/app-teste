@@ -1,11 +1,15 @@
 ngc-wysiwyg {
     display: block;
-    border-top: black solid 4px;
+
 
 
 
 
     .menu-container {
+        // border-top: black solid 4px;
+        border-top-style: solid;
+        border-top-width: 4px;
+
         .menu-bar {
             .menu-item {
                 margin: 0;
@@ -19,7 +23,8 @@ ngc-wysiwyg {
 
         }
     }
-    div.content-editable-container {
+    .content-editable-container {
+        display: block;
         position: relative;
         div.content-editable {
             &:focus {
@@ -53,14 +58,16 @@ ngc-wysiwyg {
         ngc-wysiwyg-image-resizer {
             display: block;
             position: absolute;
-            border: solid 1px #1e88e5;
+            //border: solid 1px #1e88e5;
+            border-width: 1px;
+            border-style: solid;
             box-sizing: content-box;
             .ngc-wysiwyg-handler{
 
                 position: absolute;
                 height: 6px;
                 width: 6px;
-                background: blue;
+                //background: blue;
 
                 &.top-right {
                     cursor: ne-resize;
@@ -85,7 +92,9 @@ ngc-wysiwyg {
             }
         }
         ngc-wysiwyg-floating-menu {
-            border-top: black solid 4px;
+            // border-top: black solid 4px;
+            border-top-style: solid;
+            border-top-width: 4px;
             position: absolute;
             top: 0;
             .floating-menu-item {
