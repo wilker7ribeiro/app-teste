@@ -1,4 +1,4 @@
-//- ngc-wysiwyg-botao(ng-repeat='botao in vm.botoes', callback='botao.callback', icone="{{::botao.icone}}", titulo="{{::botao.titulo}}")
+//- ngc-wysiwyg-botao.menu-item(ng-repeat='botao in vm.botoes', callback='botao.callback', icone="{{::botao.icone}}", titulo="{{::botao.titulo}}", active='botao.active()', disabled='!vm.isSelectionInsideContent()')
 ngc-wysiwyg-botao(classe='menu-item' callback='vm.setBold', icone="format_bold", titulo="Negrito", active='vm.isCursorText("bold")', disabled='!vm.isSelectionInsideContent()')
 ngc-wysiwyg-botao(classe='menu-item' callback='vm.setItalic', icone="format_italic", titulo="Itálico", active='vm.isCursorText("italic")', disabled='!vm.isSelectionInsideContent()')
 ngc-wysiwyg-botao(classe='menu-item' callback='vm.setStrikeThrough', icone="format_strikethrough", titulo="Riscado", active='vm.isCursorText("strikeThrough")', disabled='!vm.isSelectionInsideContent()')

@@ -24,7 +24,7 @@
             vm.isCursorText = isCursorText;
             vm.isSelectionInsideContent = isSelectionInsideContent
 
-            function isSelectionInsideContent (){
+            function isSelectionInsideContent() {
                 return NgcWysiwygUtilService.isInsideContentEditable();
             }
             function setText(type) {
@@ -35,6 +35,41 @@
             function isCursorText(type, alternativo) {
                 return NgcWysiwygUtilService.queryCommand(type, alternativo)
             }
+
+            vm.botoes = [
+                {
+                    callback: vm.setBold,
+                    icone: "format_bold",
+                    titulo: "Negrito",
+                    active: function () {
+                        return vm.isCursorText("bold")
+                    }
+                },
+                {
+                    callback: vm.setItalic,
+                    icone: "format_italic",
+                    titulo: "Itálico",
+                    active: function () {
+                        return vm.isCursorText("italic")
+                    }
+                },
+                {
+                    callback: vm.setStrikeThrough,
+                    icone: "format_strikethrough",
+                    titulo: "Riscado",
+                    active: function () {
+                        return vm.isCursorText("strikeThrough")
+                    }
+                },
+                {
+                    callback: vm.setUnderLine,
+                    icone: "format_underlined",
+                    titulo: "Sublinhado",
+                    active: function () {
+                        return vm.isCursorText("underline")
+                    }
+                },
+            ]
 
             vm.menuFontFamilty = {
                 titulo: 'Tipo de fonte',

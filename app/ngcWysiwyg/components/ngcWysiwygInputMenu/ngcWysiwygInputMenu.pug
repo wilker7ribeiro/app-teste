@@ -1,1 +1,1 @@
-ngc-wysiwyg-botao(classe='menu-item' ng-repeat='botao in vm.botoes', callback='botao.callback', icone="{{::botao.icone}}", titulo="{{::botao.titulo}}")
+ngc-wysiwyg-botao(classe='menu-item' ng-repeat='botao in vm.botoes', active='botao.active()', disabled='!vm.isSelectionInsideContent()', callback='botao.callback', icone="{{::botao.icone}}", titulo="{{::botao.titulo}}")
