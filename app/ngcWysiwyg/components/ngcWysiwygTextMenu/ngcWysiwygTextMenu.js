@@ -9,15 +9,16 @@
 
         return {
             controller: componentController,
+            require: { ngcWysiwyg: '^^ngcWysiwyg' },
             controllerAs: 'vm',
             templateUrl: './public/ngcWysiwygTextMenu/ngcWysiwygTextMenu.html',
             bindings: {}
         }
 
-        function componentController(NgcWysiwygUtilService) {
+        function componentController(NgcWysiwygUtilService, NgcWysiwygTextMenuService) {
             var vm = this;
 
-            vm.setBold = setText('Bold')
+
             vm.setItalic = setText('Italic')
             vm.setStrikeThrough = setText('StrikeThrough')
             vm.setUnderLine = setText('UnderLine')
@@ -32,13 +33,13 @@
                     document.execCommand(type, null, false);
                 }
             }
-            function isCursorText(type, alternativo) {
-                return NgcWysiwygUtilService.queryCommand(type, alternativo)
+            function isCursorText(type) {
+                return NgcWysiwygUtilService.queryCommand(type)
             }
 
             vm.botoes = [
                 {
-                    callback: vm.setBold,
+                    callback: NgcWysiwygTextMenuService.bold,
                     icone: "format_bold",
                     titulo: "Negrito",
                     active: function () {

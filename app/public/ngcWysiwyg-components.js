@@ -3,6 +3,127 @@
 
     angular
         .module('myApp')
+        .component('ngcWysiwyg', component());
+
+    function component() {
+
+        return {
+            controllerAs: 'vm',
+            require: {
+                ngModelCtrl: 'ngModel'
+            },
+            bindings: {
+                htmlValue: '=?'
+            },
+            templateUrl: './public/ngcWysiwyg/ngcWysiwyg.html',
+            controller: function ($scope, $element, $timeout, NgcWysiwygUndoFactory, NgcWysiwygUtilService) {
+                var vm = this;
+
+                vm.undoController = NgcWysiwygUndoFactory(vm)
+                vm.undoController.configurarGravacaoContinua();
+                vm.imagemSelecionada;
+                vm.removerImagemSelecionada = removerImagemSelecionada
+                vm.setImageSelected = setImageSelected
+
+                vm.floatingMenuCtrl; // Instanciado pelo NgcWysiwygFloatingMenu
+                vm.setBotoesMenuFlutuante = setBotoesMenuFlutuante
+
+                // Instanciados pelo NgcWysiwygEditable
+                vm.divEditableElement;
+                vm.atualizarHtml;
+                vm.atualizarModel;
+                vm.mudouValor;
+
+                vm.teste = function ($event) {
+                    $event.preventDefault()
+                    var jaTem = NgcWysiwygUtilService.queryCommand('bold')
+                    console.log(jaTem)
+                    var range = NgcWysiwygUtilService.getRange()
+                    console.log(range)
+                    if (!jaTem) {
+                        console.log('ativar')
+                        var strongElement = document.createElement('strong')
+                        range.surroundContents(strongElement)
+                        strongElement.innerHTML = '&#8203;';
+                        range.selectNodeContents(strongElement);
+                        range.collapse(false);
+                        var sel = NgcWysiwygUtilService.getSelection();
+                        sel.removeAllRanges();
+                        sel.addRange(range);
+                    } else {
+                        console.log('desativar')
+                        console.log('textContent', range.startContainer.textContent.replace(/\u200B/g,'').length)
+                        if ( range.startContainer.textContent.replace(/\u200B/g,'').length === 0) {
+                            console.log('nada escrito')
+                        } else {
+                            //if(range.startContainer.nextSibling.nodeType === Node.TEXT_NODE){
+                                document.execCommand('bold', true, false)
+                                var textoDireita = range.startContainer.parentNode.nextSibling
+                                if(textoDireita){
+                                   textoDireita.textContent = '\u200B' + textoDireita.textContent
+                                } else {
+                                    var newNode = document.createTextNode('\u200B');
+                                    range.startContainer.parentNode.parentNode.append(newNode)
+                                    textoDireita = newNode;
+                                }
+                                range.setStart(textoDireita, 1);
+                                range.setEnd(textoDireita, 1);
+                                //textoMaisPerto.innerHTML = '&#8203;'+ textoMaisPerto.innerHTML
+                                //NgcWysiwygUtilService.setRange(textoMaisPerto, 1, textoMaisPerto, 1)
+
+                            //}
+                            console.log('tem coisa escrita')
+                        }
+                    }
+                    console.log(range)
+
+                }
+
+
+
+                vm.setItemSelecionado = setItemSelecionado;
+
+                function removerImagemSelecionada() {
+                    vm.itemSelecionado = null;
+                    vm.imagemSelecionada = false;
+
+                }
+                function setImageSelected(imgElement) {
+                    vm.setItemSelecionado(imgElement)
+                    NgcWysiwygUtilService.clearSelection();
+                    vm.imagemSelecionada = true;
+                }
+
+                function setItemSelecionado(element) {
+                    vm.itemSelecionado = element
+                }
+
+                function setBotoesMenuFlutuante(botoes) {
+                    vm.floatingMenuCtrl.botoes = botoes;
+                }
+                this.$onInit = function init() {
+                }
+                this.$postLink = function () {
+                    if (document.queryCommandSupported('styleWithCSS')) {
+                        document.execCommand('styleWithCSS', null, false)
+                    }
+                    if (document.queryCommandSupported('enableObjectResizing')) {
+                        document.execCommand("enableObjectResizing", false, false);
+                    }
+                }
+            }
+        }
+
+    }
+
+
+
+}());
+(function () {
+    'use strict';
+
+    angular
+        .module('myApp')
         .component('ngcWysiwygAlignMenu', component());
 
     function component() {
@@ -88,79 +209,6 @@
 
     angular
         .module('myApp')
-        .component('ngcWysiwyg', component());
-
-    function component() {
-
-        return {
-            controllerAs: 'vm',
-            require: {
-                ngModelCtrl: 'ngModel'
-            },
-            bindings: {
-                htmlValue: '=?'
-            },
-            templateUrl: './public/ngcWysiwyg/ngcWysiwyg.html',
-            controller: function ($scope, $element, $timeout, NgcWysiwygUndoFactory, NgcWysiwygUtilService) {
-                var vm = this;
-
-                vm.undoController = NgcWysiwygUndoFactory(vm)
-
-                vm.imagemSelecionada;
-                vm.removerImagemSelecionada = removerImagemSelecionada
-                vm.setImageSelected = setImageSelected
-
-                vm.floatingMenuCtrl; // Instanciado pelo NgcWysiwygFloatingMenu
-                vm.setBotoesMenuFlutuante = setBotoesMenuFlutuante
-
-                // Instanciados pelo NgcWysiwygEditable
-                vm.divEditableElement;
-                vm.atualizarHtml;
-                vm.atualizarModel;
-                vm.mudouValor;
-
-
-
-
-                vm.setItemSelecionado = setItemSelecionado;
-
-                function removerImagemSelecionada() {
-                    vm.itemSelecionado = null;
-                    vm.imagemSelecionada = false;
-
-                }
-                function setImageSelected(imgElement) {
-                    vm.setItemSelecionado(imgElement)
-                    NgcWysiwygUtilService.clearSelection();
-                    vm.imagemSelecionada = true;
-                }
-
-                function setItemSelecionado(element) {
-                    vm.itemSelecionado = element
-                }
-
-                function setBotoesMenuFlutuante(botoes) {
-                    vm.floatingMenuCtrl.botoes = botoes;
-                }
-                this.$onInit = function init() {
-                }
-                this.$postLink = function () {
-                    document.execCommand('styleWithCSS', null, true)
-                    document.execCommand("enableObjectResizing", false, false);
-                }
-            }
-        }
-
-    }
-
-
-
-}());
-(function () {
-    'use strict';
-
-    angular
-        .module('myApp')
         .component('ngcWysiwygBotao', component());
 
     function component() {
@@ -186,10 +234,10 @@
             var vm = this;
             vm.callbackFn = function ($event) {
 
-                vm.ngcWysiwyg.undoController.gravarPasso(function () {
+                //vm.ngcWysiwyg.undoController.gravarPasso(function () {
                     vm.callback()
                     vm.ngcWysiwyg.atualizarModel()
-                })
+                //})
 
                 $event.preventDefault()
             }
@@ -202,16 +250,12 @@
 
     angular
         .module('myApp')
-        .directive('ngcWysiwygEditable', function ($sce, $timeout, $compile, NgcWysiwygUtilService) {
+        .directive('ngcWysiwygEditable', function ($sce, $timeout, $compile, NgcWysiwygUtilService, NgcWysiwygTextMenuService) {
             return {
-                restrict: 'A', // only activate on element attribute
-                require: '^^ngcWysiwyg', // get a hold of NgModelController
+                restrict: 'A',
+                require: '^^ngcWysiwyg',
                 scope: {},
                 link: function (scope, element, attrs, ngcWysiwyg) {
-
-                    // Specify how UI should be updated
-                    var addStepTimeout
-                    var stepGravando;
 
                     function init() {
 
@@ -297,7 +341,7 @@
                         scope.$apply(function () {
                             if (event.ctrlKey) {
                                 if (event.key == 'b') {
-                                    executarComando('Bold');
+                                    NgcWysiwygTextMenuService.bold(ngcWysiwyg.undoController)
                                     event.preventDefault()
                                 }
                                 if (event.key === 'Backspace' || event.key === 'Delete' || event.key === 'Del') {
@@ -317,10 +361,8 @@
                                 }
 
                                 if (event.key == 'z') {
-                                    if (stepGravando) {
-                                        $timeout.cancel(addStepTimeout)
-                                        stepGravando.rollback()
-                                        stepGravando = null;
+                                    if (ngcWysiwyg.undoController.gravacaoContinua.gravando) {
+                                        ngcWysiwyg.undoController.gravacaoContinua.rollback()
                                     } else {
                                         ngcWysiwyg.undoController.undo();
                                     }
@@ -328,10 +370,8 @@
                                     return false;
                                 }
                                 if (event.key == 'y') {
-                                    if (stepGravando) {
-                                        $timeout.cancel(addStepTimeout)
-                                        stepGravando.rollback()
-                                        stepGravando = null;
+                                    if (ngcWysiwyg.undoController.gravacaoContinua.gravando) {
+                                        ngcWysiwyg.undoController.gravacaoContinua.rollback()
                                     } else {
                                         ngcWysiwyg.undoController.redo();
                                     }
@@ -351,18 +391,11 @@
                                 if (ngcWysiwyg.imagemSelecionada) {
                                     ngcWysiwyg.removerImagemSelecionada();
                                 }
-                                if (!stepGravando) {
-                                    console.log('iniciou a gravar')
-                                    stepGravando = ngcWysiwyg.undoController.iniciarGravacaoParcial()
+                                if (!ngcWysiwyg.undoController.gravacaoContinua.gravando) {
+                                    ngcWysiwyg.undoController.gravacaoContinua.iniciar()
+                                } else {
+                                    ngcWysiwyg.undoController.gravacaoContinua.refreshTimeout()
                                 }
-
-                                // gerencia um delay para terminar de gravar quando parar de escrever
-                                $timeout.cancel(addStepTimeout)
-
-                                addStepTimeout = $timeout(function () {
-                                    stepGravando.finalizar();
-                                    stepGravando = null;
-                                }, 2000)
                             }
 
                         });
@@ -390,8 +423,8 @@
                     // Write data to the model
 
 
-                    function atualizarModel(html) {
-                        var html = html || element.html();
+                    function atualizarModel(htmlString) {
+                        var html = htmlString || element.html();
                         if (mudouValor(html)) {
                             ngcWysiwyg.ngModelCtrl.$setViewValue(html);
                         }
@@ -506,7 +539,7 @@
                     ngcWysiwyg: '^^ngcWysiwyg'
                 },
                 controllerAs: 'vm',
-                controller: function ($scope, $element, $compile, $document, NgcWysiwygUtilService) {
+                controller: function ($scope, $element, $compile, $document) {
                     var vm = this;
 
 
@@ -774,21 +807,6 @@
         .component('ngcWysiwygInputMenu', component());
 
     function component() {
-
-        function surroundSelection(element) {
-            if (window.getSelection) {
-                var sel = window.getSelection();
-                if (sel.rangeCount) {
-                    var range = sel.getRangeAt(0)
-                    content = range.extractContents();
-                    element.appendChild(content);
-
-                    // sel.removeAllRanges();
-                    // sel.addRange(range);
-                }
-            }
-        }
-
         return {
             controller: componentController,
             controllerAs: 'vm',
@@ -915,15 +933,16 @@
 
         return {
             controller: componentController,
+            require: { ngcWysiwyg: '^^ngcWysiwyg' },
             controllerAs: 'vm',
             templateUrl: './public/ngcWysiwygTextMenu/ngcWysiwygTextMenu.html',
             bindings: {}
         }
 
-        function componentController(NgcWysiwygUtilService) {
+        function componentController(NgcWysiwygUtilService, NgcWysiwygTextMenuService) {
             var vm = this;
 
-            vm.setBold = setText('Bold')
+
             vm.setItalic = setText('Italic')
             vm.setStrikeThrough = setText('StrikeThrough')
             vm.setUnderLine = setText('UnderLine')
@@ -938,13 +957,13 @@
                     document.execCommand(type, null, false);
                 }
             }
-            function isCursorText(type, alternativo) {
-                return NgcWysiwygUtilService.queryCommand(type, alternativo)
+            function isCursorText(type) {
+                return NgcWysiwygUtilService.queryCommand(type)
             }
 
             vm.botoes = [
                 {
-                    callback: vm.setBold,
+                    callback: NgcWysiwygTextMenuService.bold,
                     icone: "format_bold",
                     titulo: "Negrito",
                     active: function () {
@@ -1023,6 +1042,73 @@
 
     angular
         .module('myApp')
+        .service('NgcWysiwygTextMenuService', NgcWysiwygTextMenuService)
+
+    /** @ngInject */
+    function NgcWysiwygTextMenuService(NgcWysiwygUtilService) {
+
+        this.bold = bold;
+
+
+        function bold(UndoController) {
+            var range = NgcWysiwygUtilService.getRange()
+            UndoController.gravacaoContinua.finalizar();
+            if (range.collapsed) {
+                UndoController.gravacaoContinua.iniciar();
+                console.log('collapsed')
+                var jaTem = NgcWysiwygUtilService.queryCommand('bold')
+                if (!jaTem) {
+                    console.log('ativar')
+                    var strongElement = document.createElement('strong')
+                    range.surroundContents(strongElement)
+                    strongElement.innerHTML = '&#8203;';
+                    range.selectNodeContents(strongElement);
+                    range.collapse(false);
+                    var sel = NgcWysiwygUtilService.getSelection();
+                    sel.removeAllRanges();
+                    sel.addRange(range);
+                } else {
+                    console.log('desativar')
+                    if (range.startContainer.textContent.replace(/\u200B/g, '').length === 0) {
+                        console.log('nada escrito')
+                    } else {
+                        //if(range.startContainer.nextSibling.nodeType === Node.TEXT_NODE){
+                        document.execCommand('bold', true, false)
+                        var textoDireita = range.startContainer.parentNode.nextSibling
+                        if (textoDireita) {
+                            textoDireita.textContent = '\u200B' + textoDireita.textContent
+                        } else {
+                            var newNode = document.createTextNode('\u200B');
+                            range.startContainer.parentNode.parentNode.append(newNode)
+                            textoDireita = newNode;
+                        }
+                        range.setStart(textoDireita, 1);
+                        range.setEnd(textoDireita, 1);
+                        //textoMaisPerto.innerHTML = '&#8203;'+ textoMaisPerto.innerHTML
+                        //NgcWysiwygUtilService.setRange(textoMaisPerto, 1, textoMaisPerto, 1)
+
+                        //}
+                        console.log('tem coisa escrita')
+                    }
+                }
+            } else {
+                console.log('não collapsed')
+                UndoController.gravarPasso(function () {
+                    document.execCommand('bold', null, false);
+                })
+
+            }
+        }
+
+
+    }
+
+}());
+(function () {
+    'use strict';
+
+    angular
+        .module('myApp')
         .factory('NgcWysiwygUndoFactory', function (NgcWysiwygUtilService, $timeout) {
 
 
@@ -1033,21 +1119,58 @@
                     ngcWysiwyg: ngcWysiwyg,
                     gravarPasso: gravarPasso,
                     gravarPassoTimeout: gravarPassoTimeout,
-                    iniciarGravacaoParcial: iniciarGravacaoParcial,
+                    iniciarGravacaoManual: iniciarGravacaoManual,
                     atualizarComponenteParaPasso: atualizarComponenteParaPasso,
                     undo: undo,
                     afterUndo: [],
                     canUndo: canUndo,
                     redo: redo,
                     canRedo: canRedo,
-                    gravacaoAtual: null
+                    configurarGravacaoContinua() {
+                        var controller = this;
+                        this.gravacaoContinua = {
+                            iniciar: function () {
+                                if (!this.gravando) {
+                                    console.log('iniciar')
+                                    var gravacao = this;
+                                    this.timeoutTime = 1500;
+                                    this.rangeInicial = iniciarGravacao()
+                                    this.gravando = true
+                                    this.timeout = $timeout(function () {
+                                        gravacao.finalizar();
+                                    }, this.timeoutTime)
+                                }
+                            },
+                            refreshTimeout: function () {
+                                var gravacao = this;
+                                console.log('refresh')
+                                $timeout.cancel(this.timeout)
+                                this.timeout = $timeout(function () {
+                                    gravacao.finalizar();
+                                }, this.timeoutTime)
+                            },
+                            finalizar: function () {
+                                if (this.gravando) {
+                                    console.log('finalizar')
+                                    finalizarGravacao.call(controller, this.rangeInicial)
+                                    $timeout.cancel(this.timeout)
+                                    this.gravando = false;
+                                }
+                            },
+                            rollback: function () {
+                                if (this.gravando) {
+                                    rollbackGravacao.call(controller, this.rangeInicial)
+                                    $timeout.cancel(this.timeout)
+                                    this.gravando = false;
+                                }
+                            }
+                        }
+                    }
                 }
 
-
-
-                function iniciarGravacaoParcial() {
+                function iniciarGravacaoManual() {
                     var self = this;
-                    this.gravacaoAtual = {
+                    this.gravacaoContinua = {
                         rangeInicial: iniciarGravacao(),
                         gravando: true,
                         finalizar: function () {
@@ -1063,41 +1186,10 @@
                             }
                         }
                     }
-                    return this.gravacaoAtual
+                    return this.gravacaoContinua
                 }
 
-                function normalize(nodeInicial, nodeSelected, offset) {
-                    var retorno = {};
 
-                    if (!nodeInicial) { return; }
-                    var block = nodeInicial.firstChild
-                    while (block) {
-                        if (block.nodeType === Node.TEXT_NODE) {
-                            if (block === nodeSelected) {
-                                retorno.nodeSelected = block;
-                                retorno.offset = offset;
-                            }
-                            var nodeIrmao = block.nextSibling
-                            while (nodeIrmao && nodeIrmao.nodeType === Node.TEXT_NODE) {
-                                if (nodeIrmao === nodeSelected) {
-                                    retorno.nodeSelected = block;
-                                    retorno.offset = block.nodeValue.length + offset;
-                                }
-                                block.nodeValue += nodeIrmao.nodeValue;
-                                nodeInicial.removeChild(nodeIrmao);
-                                nodeIrmao = block.nextSibling;
-                            }
-                        }
-                        block = block.nextSibling
-                    }
-                    if (Object.keys(retorno).length <= 0) {
-                        retorno = {
-                            nodeSelected: nodeSelected,
-                            offset: offset
-                        }
-                    }
-                    return retorno;
-                }
 
                 function prepararRange(range, final) {
 
@@ -1132,7 +1224,7 @@
                     if (!range) {
                         return null;
                     }
-                    var selectedText = range.cloneContents().textContent
+                    var selectedText = NgcWysiwygUtilService.getSelectedText()
                     var originalStart = prepararRange(range, false)
                     var originalEnd = prepararRange(range, true)
 
@@ -1143,7 +1235,7 @@
                     var retornoNormalizeStart
                     var retornoNormalizeEnd
                     if (originalStart.node !== originalEnd.node) {
-                        retornoNormalizeStart = normalize(originalStart.parent, originalStart.node, originalStart.offset)
+                        retornoNormalizeStart = NgcWysiwygUtilService.normalize(originalStart.parent, originalStart.node, originalStart.offset)
                         if (!NgcWysiwygUtilService.isConnected(originalEnd.node)) {
                             retornoNormalizeEnd = {
                                 nodeSelected: retornoNormalizeStart.nodeSelected,
@@ -1151,10 +1243,10 @@
                                 offset: retornoNormalizeStart.offset + selectedText.length
                             }
                         } else {
-                            retornoNormalizeEnd = normalize(originalEnd.parent, originalEnd.node, originalEnd.offset)
+                            retornoNormalizeEnd = NgcWysiwygUtilService.normalize(originalEnd.parent, originalEnd.node, originalEnd.offset)
                         }
                     } else {
-                        retornoNormalizeStart = normalize(originalStart.parent, originalStart.node, originalStart.offset)
+                        retornoNormalizeStart = NgcWysiwygUtilService.normalize(originalStart.parent, originalStart.node, originalStart.offset)
                         retornoNormalizeEnd = { nodeSelected: retornoNormalizeStart.nodeSelected, offset: retornoNormalizeStart.offset + (originalEnd.offset - originalStart.offset) }
                     }
 
@@ -1175,12 +1267,14 @@
                     return montarRange()
                 }
                 function rollbackGravacao(rangeInicial) {
-                    this.ngcWysiwyg.atualizarModel(this.passos[this.passoAtualIndex].html);
-                    this.ngcWysiwyg.atualizarHtml()
-                    NgcWysiwygUtilService.setRange(
-                        NgcWysiwygUtilService.getNodeFromTree(rangeInicial.startNodeTree, this.ngcWysiwyg), rangeInicial.startOffset,
-                        NgcWysiwygUtilService.getNodeFromTree(rangeInicial.endNodeTree, this.ngcWysiwyg), rangeInicial.endOffset
-                    );
+                    finalizarGravacao.call(this, rangeInicial)
+                    this.undo();
+                    // this.ngcWysiwyg.atualizarModel(this.passos[this.passoAtualIndex].html);
+                    // this.ngcWysiwyg.atualizarHtml()
+                    // NgcWysiwygUtilService.setRange(
+                    //     NgcWysiwygUtilService.getNodeFromTree(rangeInicial.startNodeTree, this.ngcWysiwyg), rangeInicial.startOffset,
+                    //     NgcWysiwygUtilService.getNodeFromTree(rangeInicial.endNodeTree, this.ngcWysiwyg), rangeInicial.endOffset
+                    // );
                 }
 
                 function finalizarGravacao(rangeInicial) {
@@ -1209,18 +1303,14 @@
 
                 function gravarPasso(passo) {
                     var rangeInicial = iniciarGravacao.call(this)
-                    if (this.gravacaoAtual) {
-                        this.gravacaoAtual.finalizar();
-                    }
+                    this.gravacaoContinua.finalizar();
                     passo()
                     finalizarGravacao.call(this, rangeInicial)
                 }
                 function gravarPassoTimeout(passo) {
                     var self = this;
                     var rangeInicial = iniciarGravacao.call(this)
-                    if (this.gravacaoAtual) {
-                        this.gravacaoAtual.finalizar();
-                    }
+                    this.gravacaoContinua.finalizar();
                     if (passo) {
                         passo()
                     }
@@ -1234,8 +1324,9 @@
                 function atualizarComponenteParaPasso(index) {
                     this.ngcWysiwyg.atualizarModel(this.passos[index].html);
                     this.ngcWysiwyg.atualizarHtml()
+                    var range;
                     if (this.passoAtualIndex > index) {
-                        var range = this.passos[index + 1].rangeInicial
+                        range = this.passos[index + 1].rangeInicial
                         if (range) {
                             NgcWysiwygUtilService.setRange(
                                 NgcWysiwygUtilService.getNodeFromTree(range.startNodeTree, this.ngcWysiwyg), range.startOffset,
@@ -1244,7 +1335,7 @@
                             return
                         }
                     } else {
-                        var range = this.passos[index].rangeFinal
+                        range = this.passos[index].rangeFinal
                         if (range) {
                             NgcWysiwygUtilService.setRange(
                                 NgcWysiwygUtilService.getNodeFromTree(range.startNodeTree, this.ngcWysiwyg), range.startOffset,
@@ -1255,7 +1346,7 @@
                     }
                     NgcWysiwygUtilService.clearSelection()
                 }
-                function redo(params) {
+                function redo() {
                     if (this.canRedo()) {
                         this.atualizarComponenteParaPasso(this.passoAtualIndex + 1)
                         this.passoAtualIndex++
@@ -1325,24 +1416,71 @@
 
             this.selecionarElemento = selecionarElemento;
             this.getRange = getRange;
-            this.encapsularSelecionado = encapsularSelecionado;
+            //this.encapsularSelecionado = encapsularSelecionado;
             this.copyRange = copyRange;
             this.setRange = setRange;
             this.clearSelection = clearSelection;
             this.isLetraNumero = isLetraNumero;
             this.getNodeTree = getNodeTree;
+            this.getSelection = getSelection;
             this.getNodeFromTree = getNodeFromTree;
             this.isInsideContentEditable = isInsideContentEditable;
             this.isConnected = isConnected;
+            this.getSelectedText = getSelectedText
             this.getNearestTextNode = getNearestTextNode;
             this.queryCommand = queryCommand;
+            this.normalize = normalize;
+
+            function normalize(nodeInicial, nodeSelected, offset) {
+                    var retorno = {};
+
+                    if (!nodeInicial) { return; }
+                    var block = nodeInicial.firstChild
+                    while (block) {
+                        if (block.nodeType === Node.TEXT_NODE) {
+                            if (block === nodeSelected) {
+                                retorno.nodeSelected = block;
+                                retorno.offset = offset;
+                            }
+                            var nodeIrmao = block.nextSibling
+                            while (nodeIrmao && nodeIrmao.nodeType === Node.TEXT_NODE) {
+                                if (nodeIrmao === nodeSelected) {
+                                    retorno.nodeSelected = block;
+                                    retorno.offset = block.nodeValue.length + offset;
+                                }
+                                block.nodeValue += nodeIrmao.nodeValue;
+                                nodeInicial.removeChild(nodeIrmao);
+                                nodeIrmao = block.nextSibling;
+                            }
+                        }
+                        block = block.nextSibling
+                    }
+                    if (Object.keys(retorno).length <= 0) {
+                        retorno = {
+                            nodeSelected: nodeSelected,
+                            offset: offset
+                        }
+                    }
+                    return retorno;
+                }
 
             function queryCommand(type, alternativo) {
                 if (getRange()) {
-                    var queryComandResult = document.queryCommandValue(type);
-                    return queryComandResult === 'true' || queryComandResult === true || queryComandResult === alternativo;
+                    var queryComandResult = document.queryCommandState(type);
+                    if (!queryComandResult) {
+                        queryComandResult = document.queryCommandValue(type)
+                    }
+                    return queryComandResult === true || queryComandResult === 'true' || queryComandResult === alternativo
                 }
                 return false;
+            }
+            function getSelectedText() {
+                var range = getRange()
+                if(range){
+                    return range.cloneContents().textContent
+                }
+                return null;
+
             }
             function setRange(startNode, startOffset, endNode, endOffset) {
                 var selection = getSelection()
@@ -1353,12 +1491,12 @@
                 selection.addRange(newRage)
                 // range.startContainer.replaceData(range.startOffset ,  range.startContainer.length, '<span>'+ range.startContainer.substringData(range.startOffset, range.startContainer.length)+'</span>')
             }
-            function encapsularSelecionado(node) {
-                var range = getRange()
-                var selectedTagInicial = range.startContainer.substringData(range.startOffset, range.startContainer.length)
-                var selectedTagFinal = range.endContainer.substringData(0, range.endOffset)
-                /** @todo problema com as nodes #text quando vai dar o ctrl Y depois de boldear e desboldear o mesmo texto, salva com #text separada, mas quando da ctrl Y não existe mais as #text */
-            }
+            // function encapsularSelecionado(node) {
+            //     var range = getRange()
+            //     var selectedTagInicial = range.startContainer.substringData(range.startOffset, range.startContainer.length)
+            //     var selectedTagFinal = range.endContainer.substringData(0, range.endOffset)
+            //     /** @todo problema com as nodes #text quando vai dar o ctrl Y depois de boldear e desboldear o mesmo texto, salva com #text separada, mas quando da ctrl Y não existe mais as #text */
+            // }
 
             function isInsideContentEditable() {
                 var range = getRange()
@@ -1393,7 +1531,7 @@
                 }
             }
             function selecionarElemento(elementNode) {
-                $window.getSelection().selectAllChildren(elementNode)
+                getRange().selectNode(elementNode)
             }
 
             function isLetraNumero(event) {

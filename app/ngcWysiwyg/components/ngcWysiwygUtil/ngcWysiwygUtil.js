@@ -7,24 +7,71 @@
 
             this.selecionarElemento = selecionarElemento;
             this.getRange = getRange;
-            this.encapsularSelecionado = encapsularSelecionado;
+            //this.encapsularSelecionado = encapsularSelecionado;
             this.copyRange = copyRange;
             this.setRange = setRange;
             this.clearSelection = clearSelection;
             this.isLetraNumero = isLetraNumero;
             this.getNodeTree = getNodeTree;
+            this.getSelection = getSelection;
             this.getNodeFromTree = getNodeFromTree;
             this.isInsideContentEditable = isInsideContentEditable;
             this.isConnected = isConnected;
+            this.getSelectedText = getSelectedText
             this.getNearestTextNode = getNearestTextNode;
             this.queryCommand = queryCommand;
+            this.normalize = normalize;
+
+            function normalize(nodeInicial, nodeSelected, offset) {
+                    var retorno = {};
+
+                    if (!nodeInicial) { return; }
+                    var block = nodeInicial.firstChild
+                    while (block) {
+                        if (block.nodeType === Node.TEXT_NODE) {
+                            if (block === nodeSelected) {
+                                retorno.nodeSelected = block;
+                                retorno.offset = offset;
+                            }
+                            var nodeIrmao = block.nextSibling
+                            while (nodeIrmao && nodeIrmao.nodeType === Node.TEXT_NODE) {
+                                if (nodeIrmao === nodeSelected) {
+                                    retorno.nodeSelected = block;
+                                    retorno.offset = block.nodeValue.length + offset;
+                                }
+                                block.nodeValue += nodeIrmao.nodeValue;
+                                nodeInicial.removeChild(nodeIrmao);
+                                nodeIrmao = block.nextSibling;
+                            }
+                        }
+                        block = block.nextSibling
+                    }
+                    if (Object.keys(retorno).length <= 0) {
+                        retorno = {
+                            nodeSelected: nodeSelected,
+                            offset: offset
+                        }
+                    }
+                    return retorno;
+                }
 
             function queryCommand(type, alternativo) {
                 if (getRange()) {
-                    var queryComandResult = document.queryCommandValue(type);
-                    return queryComandResult === 'true' || queryComandResult === true || queryComandResult === alternativo;
+                    var queryComandResult = document.queryCommandState(type);
+                    if (!queryComandResult) {
+                        queryComandResult = document.queryCommandValue(type)
+                    }
+                    return queryComandResult === true || queryComandResult === 'true' || queryComandResult === alternativo
                 }
                 return false;
+            }
+            function getSelectedText() {
+                var range = getRange()
+                if(range){
+                    return range.cloneContents().textContent
+                }
+                return null;
+
             }
             function setRange(startNode, startOffset, endNode, endOffset) {
                 var selection = getSelection()
@@ -35,12 +82,12 @@
                 selection.addRange(newRage)
                 // range.startContainer.replaceData(range.startOffset ,  range.startContainer.length, '<span>'+ range.startContainer.substringData(range.startOffset, range.startContainer.length)+'</span>')
             }
-            function encapsularSelecionado(node) {
-                var range = getRange()
-                var selectedTagInicial = range.startContainer.substringData(range.startOffset, range.startContainer.length)
-                var selectedTagFinal = range.endContainer.substringData(0, range.endOffset)
-                /** @todo problema com as nodes #text quando vai dar o ctrl Y depois de boldear e desboldear o mesmo texto, salva com #text separada, mas quando da ctrl Y não existe mais as #text */
-            }
+            // function encapsularSelecionado(node) {
+            //     var range = getRange()
+            //     var selectedTagInicial = range.startContainer.substringData(range.startOffset, range.startContainer.length)
+            //     var selectedTagFinal = range.endContainer.substringData(0, range.endOffset)
+            //     /** @todo problema com as nodes #text quando vai dar o ctrl Y depois de boldear e desboldear o mesmo texto, salva com #text separada, mas quando da ctrl Y não existe mais as #text */
+            // }
 
             function isInsideContentEditable() {
                 var range = getRange()
@@ -75,7 +122,7 @@
                 }
             }
             function selecionarElemento(elementNode) {
-                $window.getSelection().selectAllChildren(elementNode)
+                getRange().selectNode(elementNode)
             }
 
             function isLetraNumero(event) {

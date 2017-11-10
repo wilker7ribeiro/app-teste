@@ -27,6 +27,12 @@ ngc-wysiwyg {
         display: block;
         position: relative;
         div.content-editable {
+            &::after {
+                clear: both;
+                display: block;
+                content: "";
+                height: 0;
+            }
             &:focus {
                 outline: none;
             }

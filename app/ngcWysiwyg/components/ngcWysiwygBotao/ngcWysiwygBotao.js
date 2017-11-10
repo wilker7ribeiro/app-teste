@@ -28,10 +28,10 @@
             var vm = this;
             vm.callbackFn = function ($event) {
 
-                vm.ngcWysiwyg.undoController.gravarPasso(function () {
+                //vm.ngcWysiwyg.undoController.gravarPasso(function () {
                     vm.callback()
                     vm.ngcWysiwyg.atualizarModel()
-                })
+                //})
 
                 $event.preventDefault()
             }

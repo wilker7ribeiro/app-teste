@@ -1,9 +1,9 @@
 angular.module('myApp', ['ngMaterial', 'ngMessages', 'ngSanitize'
-//, 'ui.tinymce'
-//, 'ckeditor'
+      //, 'ui.tinymce'
+      //, 'ckeditor'
       // 'ngc-passo-a-passo',
 ]);
-angular.module('myApp').controller('appCtrl', function ($scope, $http) {
+angular.module('myApp').controller('appCtrl', function ($scope, $http, NgcWysiwygUtilService) {
       //$tical : false;
 
       $scope.options = {
@@ -12,10 +12,7 @@ angular.module('myApp').controller('appCtrl', function ($scope, $http) {
             entities: false
       };
 
-      $scope.teste = function(){
-            $scope.tema = 'accent'
-            console.log('iu')
-      }
+
       $scope.texto = '<p>​<img width="200" src="https://cdn0.froala.com/assets/editor/pages/B/editor-photo-645d411798e5b4e825765d091dd5aaab.jpg"alt="Editor photo"></p><p>​Froala Editor is a lightweight WYSIWYG HTML Editor written in Javascript that enables rich text editing capabilitiesfor your applications.</p><p>Its complete documentation, spec​ially designed framework plugins and tons of examples make it easy to integrate We "re continuously working to add in new features and take the Javascript web WYSIWYG editing capabilities beyond its current limits.​</p>'
 
       // this.$onInit = function () {

@@ -3,16 +3,12 @@
 
     angular
         .module('myApp')
-        .directive('ngcWysiwygEditable', function ($sce, $timeout, $compile, NgcWysiwygUtilService) {
+        .directive('ngcWysiwygEditable', function ($sce, $timeout, $compile, NgcWysiwygUtilService, NgcWysiwygTextMenuService) {
             return {
-                restrict: 'A', // only activate on element attribute
-                require: '^^ngcWysiwyg', // get a hold of NgModelController
+                restrict: 'A',
+                require: '^^ngcWysiwyg',
                 scope: {},
                 link: function (scope, element, attrs, ngcWysiwyg) {
-
-                    // Specify how UI should be updated
-                    var addStepTimeout
-                    var stepGravando;
 
                     function init() {
 
@@ -98,7 +94,7 @@
                         scope.$apply(function () {
                             if (event.ctrlKey) {
                                 if (event.key == 'b') {
-                                    executarComando('Bold');
+                                    NgcWysiwygTextMenuService.bold(ngcWysiwyg.undoController)
                                     event.preventDefault()
                                 }
                                 if (event.key === 'Backspace' || event.key === 'Delete' || event.key === 'Del') {
@@ -118,10 +114,8 @@
                                 }
 
                                 if (event.key == 'z') {
-                                    if (stepGravando) {
-                                        $timeout.cancel(addStepTimeout)
-                                        stepGravando.rollback()
-                                        stepGravando = null;
+                                    if (ngcWysiwyg.undoController.gravacaoContinua.gravando) {
+                                        ngcWysiwyg.undoController.gravacaoContinua.rollback()
                                     } else {
                                         ngcWysiwyg.undoController.undo();
                                     }
@@ -129,10 +123,8 @@
                                     return false;
                                 }
                                 if (event.key == 'y') {
-                                    if (stepGravando) {
-                                        $timeout.cancel(addStepTimeout)
-                                        stepGravando.rollback()
-                                        stepGravando = null;
+                                    if (ngcWysiwyg.undoController.gravacaoContinua.gravando) {
+                                        ngcWysiwyg.undoController.gravacaoContinua.rollback()
                                     } else {
                                         ngcWysiwyg.undoController.redo();
                                     }
@@ -152,18 +144,11 @@
                                 if (ngcWysiwyg.imagemSelecionada) {
                                     ngcWysiwyg.removerImagemSelecionada();
                                 }
-                                if (!stepGravando) {
-                                    console.log('iniciou a gravar')
-                                    stepGravando = ngcWysiwyg.undoController.iniciarGravacaoParcial()
+                                if (!ngcWysiwyg.undoController.gravacaoContinua.gravando) {
+                                    ngcWysiwyg.undoController.gravacaoContinua.iniciar()
+                                } else {
+                                    ngcWysiwyg.undoController.gravacaoContinua.refreshTimeout()
                                 }
-
-                                // gerencia um delay para terminar de gravar quando parar de escrever
-                                $timeout.cancel(addStepTimeout)
-
-                                addStepTimeout = $timeout(function () {
-                                    stepGravando.finalizar();
-                                    stepGravando = null;
-                                }, 2000)
                             }
 
                         });
@@ -191,8 +176,8 @@
                     // Write data to the model
 
 
-                    function atualizarModel(html) {
-                        var html = html || element.html();
+                    function atualizarModel(htmlString) {
+                        var html = htmlString || element.html();
                         if (mudouValor(html)) {
                             ngcWysiwyg.ngModelCtrl.$setViewValue(html);
                         }

@@ -12,7 +12,7 @@
                     ngcWysiwyg: '^^ngcWysiwyg'
                 },
                 controllerAs: 'vm',
-                controller: function ($scope, $element, $compile, $document, NgcWysiwygUtilService) {
+                controller: function ($scope, $element, $compile, $document) {
                     var vm = this;
 
 
