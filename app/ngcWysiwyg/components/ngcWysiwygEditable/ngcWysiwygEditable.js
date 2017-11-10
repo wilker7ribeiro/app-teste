@@ -7,54 +7,92 @@
             return {
                 restrict: 'A', // only activate on element attribute
                 require: '^^ngcWysiwyg', // get a hold of NgModelController
+                scope: {},
                 link: function (scope, element, attrs, ngcWysiwyg) {
 
                     // Specify how UI should be updated
                     var addStepTimeout
                     var stepGravando;
 
-                    ngcWysiwyg.divEditableElement = element
-                    ngcWysiwyg.atualizarHtml = atualizarHtml;
-                    ngcWysiwyg.atualizarModel = atualizarModel;
-                    ngcWysiwyg.mudouValor = mudouValor;
+                    function init() {
+
+                        ngcWysiwyg.divEditableElement = element
+                        ngcWysiwyg.atualizarHtml = atualizarHtml;
+                        ngcWysiwyg.atualizarModel = atualizarModel;
+                        ngcWysiwyg.mudouValor = mudouValor;
+
+                        atualizarHtml()
+                        compileImgs();
+                        atualizarModel();
+
+                        ngcWysiwyg.undoController.passos.push({
+                            html: element.html()
+                        })
+
+                    }
+
+
 
                     ngcWysiwyg.ngModelCtrl.$viewChangeListeners.push(function () {
                         scope.$eval(attrs.ngChange);
-                        ngcWysiwyg.aoMudarValor()
                     });
-                    element.on('dragstart', function () {
+
+                    element.on('drop', onDrop)
+                    element.on('click', onClick)
+                    element.on('cut', onCut)
+                    element.on('keyup', onKeyUp)
+                    element.on('paste', onPaste)
+                    element.on('mscontrolselect', onMscontrolselect);
+                    element.on('keydown', onKeydown);
+
+                    element.on('$destroy', function () {
+                        element.off('drop', onDrop)
+                        element.off('click', onClick)
+                        element.off('cut', onCut)
+                        element.off('keyup', onKeyUp)
+                        element.off('paste', onPaste)
+                        element.off('mscontrolselect', onMscontrolselect);
+                        element.off('keydown', onKeydown);
+                    })
+
+                    function executarComando(comando, value) {
+                        ngcWysiwyg.undoController.gravarPasso(function () {
+                            document.execCommand(comando, false, value)
+                        })
+                    }
+
+                    function onDrop() {
                         ngcWysiwyg.undoController.gravarPassoTimeout()
-                    })
-                    element.on('click', function () {
+                    }
+                    function onClick() {
                         scope.$apply();
-                    })
-                    element.on('cut', function () {
+                    }
+                    function onCut() {
                         scope.$apply(function () {
                             ngcWysiwyg.undoController.gravarPassoTimeout()
                         });
-                    })
-                    element.on('paste', function (event) {
+                    }
+                    function onPaste(event) {
                         if (document.queryCommandSupported('insertHTML')) {
                             scope.$apply(function () {
                                 ngcWysiwyg.undoController.gravarPasso(function () {
-                                    var clipboardData = event.clipboardData || window.clipboardData
-                                    var texto = clipboardData.getData('text')
+                                    var ctrlCDados = event.clipboardData || window.clipboardData
+                                    var texto = ctrlCDados.getData('text')
                                     document.execCommand('insertHTML', null, texto)
                                 })
                                 event.preventDefault()
                             });
                         }
-                    })
-                    // Listen for change events to enable binding
-                    element.on('keyup', function () {
+                    }
+                    function onKeyUp() {
                         // atualiza a model
                         atualizarModel()
 
-                    })
-                    element.on('mscontrolselect', function (evt) {
+                    }
+                    function onMscontrolselect(evt) {
                         evt.preventDefault();
-                    });
-                    element.on('keydown', function (event) {
+                    }
+                    function onKeydown(event) {
                         // inicia a gravação do step, para salvar primeiro a seleção
                         // deletar
                         scope.$apply(function () {
@@ -129,26 +167,6 @@
                             }
 
                         });
-
-                    });
-
-                    function executarComando(comando, value) {
-                        ngcWysiwyg.undoController.gravarPasso(function () {
-                            document.execCommand(comando, false, value)
-                        })
-                    }
-
-                    function init() {
-
-                        atualizarHtml()
-
-                        compileImgs();
-
-                        atualizarModel();
-                        ngcWysiwyg.undoController.passos.push({
-                            html: element.html(),
-                            selection: null
-                        })
 
                     }
                     init()

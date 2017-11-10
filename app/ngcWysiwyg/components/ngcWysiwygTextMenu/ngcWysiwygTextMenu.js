@@ -109,12 +109,6 @@
             }
 
         }
-        this.$onInit = function init() {
-
-        }
     }
-
-
-
 
 }());

@@ -68,7 +68,13 @@ ngc-wysiwyg {
                 height: 6px;
                 width: 6px;
                 //background: blue;
-
+                &.top {
+                    cursor: n-resize;
+                    top: -3;
+                    left: 0;
+                    right: 0;
+                    margin: 0 auto;
+                }
                 &.top-right {
                     cursor: ne-resize;
                     top: -3;
@@ -79,6 +85,13 @@ ngc-wysiwyg {
                     top: -3;
                     left: -3;
                 }
+                &.bottom {
+                    cursor: s-resize;
+                    bottom: -3;
+                    left: 0;
+                    right: 0;
+                    margin: 0 auto;
+                }
                 &.bottom-right {
                     cursor: se-resize;
                     bottom: -3;
@@ -88,6 +101,20 @@ ngc-wysiwyg {
                     cursor: sw-resize;
                     bottom: -3;
                     left: -3;
+                }
+                &.right {
+                    cursor: e-resize;
+                    right: -3;
+                    top: 0;
+                    bottom: 0;
+                    margin: auto 0
+                }
+                &.left {
+                    cursor: w-resize;
+                    left: -3;
+                    top: 0;
+                    bottom: 0;
+                    margin: auto 0
                 }
             }
         }

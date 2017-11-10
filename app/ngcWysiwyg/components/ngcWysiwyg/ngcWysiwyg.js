@@ -20,40 +20,46 @@
                 var vm = this;
 
                 vm.undoController = NgcWysiwygUndoFactory(vm)
+
                 vm.imagemSelecionada;
+                vm.removerImagemSelecionada = removerImagemSelecionada
+                vm.setImageSelected = setImageSelected
 
-                vm.floatingMenuCtrl;
+                vm.floatingMenuCtrl; // Instanciado pelo NgcWysiwygFloatingMenu
+                vm.setBotoesMenuFlutuante = setBotoesMenuFlutuante
 
+                // Instanciados pelo NgcWysiwygEditable
                 vm.divEditableElement;
                 vm.atualizarHtml;
-                vm.atualizarHtmlComDOMElement;
                 vm.atualizarModel;
                 vm.mudouValor;
 
 
-                vm.aoMudarValor = function() {
+
+
+                vm.setItemSelecionado = setItemSelecionado;
+
+                function removerImagemSelecionada() {
+                    vm.itemSelecionado = null;
+                    vm.imagemSelecionada = false;
 
                 }
-                vm.setItemSelecionado = function(element){
-                     vm.itemSelecionado = element
-
-                }
-                vm.setImageSelected = function (imgElement) {
+                function setImageSelected(imgElement) {
                     vm.setItemSelecionado(imgElement)
                     NgcWysiwygUtilService.clearSelection();
                     vm.imagemSelecionada = true;
                 }
-                vm.removerImagemSelecionada = function () {
-                    vm.itemSelecionado = null;
-                    vm.imagemSelecionada = false;
-                }
-                vm.setBotoesMenuFlutuante = function (botoes) {
-                    vm.floatingMenuCtrl.botoes = botoes;
+
+                function setItemSelecionado(element) {
+                    vm.itemSelecionado = element
                 }
 
+                function setBotoesMenuFlutuante(botoes) {
+                    vm.floatingMenuCtrl.botoes = botoes;
+                }
                 this.$onInit = function init() {
                 }
-                this.$postLink = function(){
+                this.$postLink = function () {
                     document.execCommand('styleWithCSS', null, true)
                     document.execCommand("enableObjectResizing", false, false);
                 }

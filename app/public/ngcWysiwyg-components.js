@@ -3,73 +3,6 @@
 
     angular
         .module('myApp')
-        .component('ngcWysiwyg', component());
-
-    function component() {
-
-        return {
-            controllerAs: 'vm',
-            require: {
-                ngModelCtrl: 'ngModel'
-            },
-            bindings: {
-                htmlValue: '=?'
-            },
-            templateUrl: './public/ngcWysiwyg/ngcWysiwyg.html',
-            controller: function ($scope, $element, $timeout, NgcWysiwygUndoFactory, NgcWysiwygUtilService) {
-                var vm = this;
-
-                vm.undoController = NgcWysiwygUndoFactory(vm)
-                vm.imagemSelecionada;
-
-                vm.floatingMenuCtrl;
-
-                vm.divEditableElement;
-                vm.atualizarHtml;
-                vm.atualizarHtmlComDOMElement;
-                vm.atualizarModel;
-                vm.mudouValor;
-
-
-                vm.aoMudarValor = function() {
-
-                }
-                vm.setItemSelecionado = function(element){
-                     vm.itemSelecionado = element
-
-                }
-                vm.setImageSelected = function (imgElement) {
-                    vm.setItemSelecionado(imgElement)
-                    NgcWysiwygUtilService.clearSelection();
-                    vm.imagemSelecionada = true;
-                }
-                vm.removerImagemSelecionada = function () {
-                    vm.itemSelecionado = null;
-                    vm.imagemSelecionada = false;
-                }
-                vm.setBotoesMenuFlutuante = function (botoes) {
-                    vm.floatingMenuCtrl.botoes = botoes;
-                }
-
-                this.$onInit = function init() {
-                }
-                this.$postLink = function(){
-                    document.execCommand('styleWithCSS', null, true)
-                    document.execCommand("enableObjectResizing", false, false);
-                }
-            }
-        }
-
-    }
-
-
-
-}());
-(function () {
-    'use strict';
-
-    angular
-        .module('myApp')
         .component('ngcWysiwygAlignMenu', component());
 
     function component() {
@@ -155,6 +88,79 @@
 
     angular
         .module('myApp')
+        .component('ngcWysiwyg', component());
+
+    function component() {
+
+        return {
+            controllerAs: 'vm',
+            require: {
+                ngModelCtrl: 'ngModel'
+            },
+            bindings: {
+                htmlValue: '=?'
+            },
+            templateUrl: './public/ngcWysiwyg/ngcWysiwyg.html',
+            controller: function ($scope, $element, $timeout, NgcWysiwygUndoFactory, NgcWysiwygUtilService) {
+                var vm = this;
+
+                vm.undoController = NgcWysiwygUndoFactory(vm)
+
+                vm.imagemSelecionada;
+                vm.removerImagemSelecionada = removerImagemSelecionada
+                vm.setImageSelected = setImageSelected
+
+                vm.floatingMenuCtrl; // Instanciado pelo NgcWysiwygFloatingMenu
+                vm.setBotoesMenuFlutuante = setBotoesMenuFlutuante
+
+                // Instanciados pelo NgcWysiwygEditable
+                vm.divEditableElement;
+                vm.atualizarHtml;
+                vm.atualizarModel;
+                vm.mudouValor;
+
+
+
+
+                vm.setItemSelecionado = setItemSelecionado;
+
+                function removerImagemSelecionada() {
+                    vm.itemSelecionado = null;
+                    vm.imagemSelecionada = false;
+
+                }
+                function setImageSelected(imgElement) {
+                    vm.setItemSelecionado(imgElement)
+                    NgcWysiwygUtilService.clearSelection();
+                    vm.imagemSelecionada = true;
+                }
+
+                function setItemSelecionado(element) {
+                    vm.itemSelecionado = element
+                }
+
+                function setBotoesMenuFlutuante(botoes) {
+                    vm.floatingMenuCtrl.botoes = botoes;
+                }
+                this.$onInit = function init() {
+                }
+                this.$postLink = function () {
+                    document.execCommand('styleWithCSS', null, true)
+                    document.execCommand("enableObjectResizing", false, false);
+                }
+            }
+        }
+
+    }
+
+
+
+}());
+(function () {
+    'use strict';
+
+    angular
+        .module('myApp')
         .component('ngcWysiwygBotao', component());
 
     function component() {
@@ -200,54 +206,92 @@
             return {
                 restrict: 'A', // only activate on element attribute
                 require: '^^ngcWysiwyg', // get a hold of NgModelController
+                scope: {},
                 link: function (scope, element, attrs, ngcWysiwyg) {
 
                     // Specify how UI should be updated
                     var addStepTimeout
                     var stepGravando;
 
-                    ngcWysiwyg.divEditableElement = element
-                    ngcWysiwyg.atualizarHtml = atualizarHtml;
-                    ngcWysiwyg.atualizarModel = atualizarModel;
-                    ngcWysiwyg.mudouValor = mudouValor;
+                    function init() {
+
+                        ngcWysiwyg.divEditableElement = element
+                        ngcWysiwyg.atualizarHtml = atualizarHtml;
+                        ngcWysiwyg.atualizarModel = atualizarModel;
+                        ngcWysiwyg.mudouValor = mudouValor;
+
+                        atualizarHtml()
+                        compileImgs();
+                        atualizarModel();
+
+                        ngcWysiwyg.undoController.passos.push({
+                            html: element.html()
+                        })
+
+                    }
+
+
 
                     ngcWysiwyg.ngModelCtrl.$viewChangeListeners.push(function () {
                         scope.$eval(attrs.ngChange);
-                        ngcWysiwyg.aoMudarValor()
                     });
-                    element.on('dragstart', function () {
+
+                    element.on('drop', onDrop)
+                    element.on('click', onClick)
+                    element.on('cut', onCut)
+                    element.on('keyup', onKeyUp)
+                    element.on('paste', onPaste)
+                    element.on('mscontrolselect', onMscontrolselect);
+                    element.on('keydown', onKeydown);
+
+                    element.on('$destroy', function () {
+                        element.off('drop', onDrop)
+                        element.off('click', onClick)
+                        element.off('cut', onCut)
+                        element.off('keyup', onKeyUp)
+                        element.off('paste', onPaste)
+                        element.off('mscontrolselect', onMscontrolselect);
+                        element.off('keydown', onKeydown);
+                    })
+
+                    function executarComando(comando, value) {
+                        ngcWysiwyg.undoController.gravarPasso(function () {
+                            document.execCommand(comando, false, value)
+                        })
+                    }
+
+                    function onDrop() {
                         ngcWysiwyg.undoController.gravarPassoTimeout()
-                    })
-                    element.on('click', function () {
+                    }
+                    function onClick() {
                         scope.$apply();
-                    })
-                    element.on('cut', function () {
+                    }
+                    function onCut() {
                         scope.$apply(function () {
                             ngcWysiwyg.undoController.gravarPassoTimeout()
                         });
-                    })
-                    element.on('paste', function (event) {
+                    }
+                    function onPaste(event) {
                         if (document.queryCommandSupported('insertHTML')) {
                             scope.$apply(function () {
                                 ngcWysiwyg.undoController.gravarPasso(function () {
-                                    var clipboardData = event.clipboardData || window.clipboardData
-                                    var texto = clipboardData.getData('text')
+                                    var ctrlCDados = event.clipboardData || window.clipboardData
+                                    var texto = ctrlCDados.getData('text')
                                     document.execCommand('insertHTML', null, texto)
                                 })
                                 event.preventDefault()
                             });
                         }
-                    })
-                    // Listen for change events to enable binding
-                    element.on('keyup', function () {
+                    }
+                    function onKeyUp() {
                         // atualiza a model
                         atualizarModel()
 
-                    })
-                    element.on('mscontrolselect', function (evt) {
+                    }
+                    function onMscontrolselect(evt) {
                         evt.preventDefault();
-                    });
-                    element.on('keydown', function (event) {
+                    }
+                    function onKeydown(event) {
                         // inicia a gravação do step, para salvar primeiro a seleção
                         // deletar
                         scope.$apply(function () {
@@ -323,26 +367,6 @@
 
                         });
 
-                    });
-
-                    function executarComando(comando, value) {
-                        ngcWysiwyg.undoController.gravarPasso(function () {
-                            document.execCommand(comando, false, value)
-                        })
-                    }
-
-                    function init() {
-
-                        atualizarHtml()
-
-                        compileImgs();
-
-                        atualizarModel();
-                        ngcWysiwyg.undoController.passos.push({
-                            html: element.html(),
-                            selection: null
-                        })
-
                     }
                     init()
 
@@ -392,18 +416,11 @@
             },
 
             controller: function ($scope, $element, $compile) {
-                var vm = this;
-                vm.teste = function () {
-                    vm.ngcWysiwyg.setImageSelected($element)
-                }
+
                 this.$onInit = function () {
-                    // $element.on('DOMCharacterDataModified mouseup', function ($event) {
-                    //     vm.ngcWysiwyg.triggerChange()
-                    // })
 
+                    /** @todo mover para o componente de upload quando existir */
                     $element.on('DOMNodeInserted', function (event) {
-
-                        /** @todo mover para o componente de upload quando existir */
                         if (event.srcElement && event.srcElement.nodeName === 'IMG') {
                             $compile(angular.element(event.srcElement).attr('ngc-wysiwyg-image', true))($scope)
                         }
@@ -489,101 +506,86 @@
                     ngcWysiwyg: '^^ngcWysiwyg'
                 },
                 controllerAs: 'vm',
-                controller: function ($scope, $element, $compile, $document) {
+                controller: function ($scope, $element, $compile, $document, NgcWysiwygUtilService) {
                     var vm = this;
 
 
-                    this.$onInit = function () {
+                    this.$onInit = function onInit() {
 
-                        $element.on('click', function () {
-                            $scope.$apply(function () {
-                                vm.ngcWysiwyg.setImageSelected($element)
-                                vm.ngcWysiwyg.setBotoesMenuFlutuante(vm.botoesMenuFlutuante)
-                                vm.ngcWysiwyg.floatingMenuCtrl.goToElement($element)
-                                //NgcWysiwygUtilService.clearSelection();
-                            })
-                        })
+                        $element.on('click', onClick)
 
+                    }
+                    this.$onDestroy = function onDestroy() {
+                        $element.off('click', onClick)
+                    }
 
-                        // function isFloatingButton (element){
-                        //     var achou = false
-                        //     parentNode = element
-                        //     while (parentNode) {
-                        //         if (parentNode.nodeName === 'NGC-WYSIWYG-FLOATING-MENU') {
-                        //             achou = true;
-                        //             break;
-                        //         }
-                        //         parentNode = parentNode.parentNode
-                        //     }
-                        //     return achou
-                        // }
-
-                        var onClickFora = function (event) {
-                            var isImage = event.target.nodeName === "IMG";
-                            var isResizer = !!angular.element(event.target).controller('ngcWysiwygImageResizer')
-                            /** @todo o que é mais performatico? */
-                            // isFloatingButton(event.target)
-                            var isFloatingButton = !!angular.element(event.target).controller('ngcWysiwygFloatingMenu')
-
-                            if (!isImage && !isFloatingButton && !isResizer) {
-                                $scope.$apply(vm.ngcWysiwyg.removerImagemSelecionada)
+                    vm.botoesMenuFlutuante = [
+                        {
+                            icone: 'format_align_left',
+                            titulo: 'Esquerda',
+                            callback: function () {
+                                $element.addClass('float-left')
+                                $element.removeClass('float-right')
+                            },
+                            active: function () {
+                                return $element.hasClass('float-left')
+                            }
+                        },
+                        {
+                            icone: 'format_align_right',
+                            titulo: 'Direita',
+                            callback: function () {
+                                $element.addClass('float-right')
+                                $element.removeClass('float-left')
+                            },
+                            active: function () {
+                                return $element.hasClass('float-right')
+                            }
+                        },
+                        {
+                            icone: 'format_align_justify',
+                            titulo: 'Justificado',
+                            callback: function () {
+                                $element.removeClass('float-left')
+                                $element.removeClass('float-right')
+                            },
+                            active: function () {
+                                return !$element.hasClass('float-left') && !$element.hasClass('float-right')
+                            }
+                        },
+                        {
+                            icone: 'add',
+                            titulo: 'ADICIONAR IMAGEM',
+                            callback: function () {
+                                document.execCommand('insertImage', null, 'https://www.espacoblog.com/wp-content/uploads/2013/03/978.png');
                             }
                         }
-                        $scope.$watch(function () {
-                            return vm.ngcWysiwyg.imagemSelecionada
-                        }, function (newValue, oldValue) {
-                            if (newValue !== oldValue && newValue == true) {
-                                $document.bind('click', onClickFora);
-                            }
-                            else if (newValue !== oldValue && newValue == false) {
-                                $document.unbind('click', onClickFora);
-                            }
-                        });
-
-
-                        vm.botoesMenuFlutuante = [
-                            {
-                                icone: 'format_align_left',
-                                titulo: 'Esquerda',
-                                callback: function () {
-                                    $element.addClass('float-left')
-                                    $element.removeClass('float-right')
-                                },
-                                active: function () {
-                                    return $element.hasClass('float-left')
-                                }
-                            },
-                            {
-                                icone: 'format_align_right',
-                                titulo: 'Direita',
-                                callback: function () {
-                                    $element.addClass('float-right')
-                                    $element.removeClass('float-left')
-                                },
-                                active: function () {
-                                    return $element.hasClass('float-right')
-                                }
-                            },
-                            {
-                                icone: 'format_align_justify',
-                                titulo: 'Justificado',
-                                callback: function () {
-                                    $element.removeClass('float-left')
-                                    $element.removeClass('float-right')
-                                },
-                                active: function () {
-                                    return !$element.hasClass('float-left') && !$element.hasClass('float-right')
-                                }
-                            },
-                            {
-                                icone: 'add',
-                                titulo: 'ADICIONAR IMAGEM',
-                                callback: function () {
-                                    document.execCommand('insertImage', null, 'https://www.espacoblog.com/wp-content/uploads/2013/03/978.png');
-                                }
-                            }
-                        ]
+                    ]
+                    function onClick() {
+                        $scope.$apply(function () {
+                            vm.ngcWysiwyg.setImageSelected($element)
+                            vm.ngcWysiwyg.setBotoesMenuFlutuante(vm.botoesMenuFlutuante)
+                            vm.ngcWysiwyg.floatingMenuCtrl.goToElement($element)
+                            $document.on('mouseup', onClickFora);
+                            //NgcWysiwygUtilService.clearSelection();
+                        })
                     }
+                    function onClickFora(event) {
+                        var isImage = event.target.nodeName === "IMG";
+                        var isResizer = !!angular.element(event.target).controller('ngcWysiwygImageResizer')
+                        /** @todo o que é mais performatico? */
+                        // isFloatingButton(event.target)
+                        var isFloatingButton = !!angular.element(event.target).controller('ngcWysiwygFloatingMenu')
+
+                        if (!isImage && !isFloatingButton && !isResizer) {
+                            $scope.$apply(function(){
+                                vm.ngcWysiwyg.removerImagemSelecionada()
+                                $document.off('mouseup', onClickFora);
+                            })
+                        }
+                    }
+
+
                     // var canvas = document.getElementById('myCanvas');
                     // var context = canvas.getContext('2d');
                     // var imageObj = new Image();
@@ -604,7 +606,9 @@
                     // imageObj.src = 'http://www.html5canvastutorials.com/demos/assets/darth-vader.jpg';
 
                 },
+
             }
+
         })
 
 }());
@@ -634,116 +638,128 @@
                 var widthOriginal;
                 var heightOriginal;
                 var stepGravando
+                vm.ativarResize = ativarResize;
+
                 this.$onInit = function init() {
                     vm.ngcWysiwyg.undoController.afterUndo.push(function () {
                         vm.ngcWysiwyg.removerImagemSelecionada();
                     })
-                    function resizeHandler($event) {
-                        $scope.$apply(function () {
-                            resize($event)
-                        })
-                    }
-
-
-                    vm.ativarResize = function ($event, botao) {
-                        $event.preventDefault();
-                        botaoTipo = botao;
-                        stepGravando = vm.ngcWysiwyg.undoController.iniciarGravacaoParcial()
-                        mousePositionX = $event.clientX
-                        mousePositionY = $event.clientY
-
-                        var imagem = vm.ngcWysiwyg.itemSelecionado
-                        widthOriginal = imagem[0].clientWidth;
-                        heightOriginal = imagem[0].clientHeight;
-
-                        $document.bind('mousemove', resizeHandler);
-                        $document.bind('mouseup', desativarResize);
-                    }
-                    function desativarResize($event) {
-                        stepGravando.finalizar();
-                        resizeSimetrico = false;
-                        $document.unbind('mousemove', resizeHandler);
-                        $document.unbind('mouseup', desativarResize);
-                    }
-                    function containsTipo(array, tipo) {
-                        tipo = tipo || botaoTipo;
-                        return array.indexOf(tipo) !== -1;
-                    }
-                    function isBotaoLadoDireito(tipo) {
-                        return containsTipo(["top-right", "right", "bottom-right"], tipo)
-                    }
-                    function isBotaoLadoEsquerdo(tipo) {
-                        return containsTipo(["top-left", "left", "bottom-left"], tipo)
-                    }
-                    function isBotaoCima(tipo) {
-                        return containsTipo(["top-left", "top", "top-right"], tipo)
-                    }
-                    function isBotaoBaixo(tipo) {
-                        tipo = tipo || botaoTipo;
-                        return ["bottom-left", "bottom", "bottom-right"].indexOf(tipo) !== -1;
-                    }
-
-                    function resize($event) {
-                        var imagem = vm.ngcWysiwyg.itemSelecionado
-
-
-                        var moveX = isBotaoLadoEsquerdo() ? mousePositionX - $event.clientX : $event.clientX - mousePositionX
-                        var moveY = isBotaoCima() ? mousePositionY - $event.clientY : $event.clientY - mousePositionY
-                        if ($event.ctrlKey) {
-                            if (!resizeSimetrico) {
-                                // Transforma o tamanho atual para um tamanho simétrico
-                                var widthAtual = imagem[0].clientWidth;
-                                moveX = widthAtual - widthOriginal;
-                            }
-                            // ativa a flag para não transformar novamente
-                            resizeSimetrico = true;
-                            // iguala o moveY e moveX para que heigth e width cresçam proporcionalmente
-                            moveY = moveX
-                        } else {
-                            resizeSimetrico = false;
-                        }
-
-                        var novaWidth = widthOriginal + moveX
-                        var novoHeight = heightOriginal + moveY
-                        if (isBotaoLadoDireito() || isBotaoLadoEsquerdo()) {
-                            var containerWidth = parseInt(getComputedStyle(vm.ngcWysiwyg.divEditableElement[0]).width.replace('px', ''))
-                            if (novaWidth < containerWidth) {
-                                imagem.css('width', novaWidth)
-                            }
-                        }
-
-                        if (isBotaoCima() || isBotaoBaixo()) {
-                            imagem.css('height', novoHeight)
-                        }
-
-                    }
-                    vm.botoes = [
-                        {
-                            icone: 'format_bold',
-                            callback: function () {
-                                document.execCommand('bold', null, false);
-                            }
-                        },
-                        {
-                            icone: 'format_italic',
-                            callback: function () {
-                                document.execCommand('italic', null, false);
-                            }
-                        },
-                        {
-                            icone: 'format_strikethrough',
-                            callback: function () {
-                                document.execCommand('strikeThrough', null, false);
-                            }
-                        },
-                        {
-                            icone: 'format_underlined',
-                            callback: function () {
-                                document.execCommand('underline', null, false);
-                            }
-                        }
-                    ]
                 }
+                this.$onDestroy = function onDestroy() {
+                    removerEventListeners()
+                }
+
+                function removerEventListeners() {
+                    $document.off('mousemove', resizeHandler);
+                    $document.off('mouseup', desativarResize);
+                }
+                function ativarResize($event, botao) {
+                    $event.preventDefault();
+                    vm.ngcWysiwyg.imageResizing = true;
+                    botaoTipo = botao;
+                    stepGravando = vm.ngcWysiwyg.undoController.iniciarGravacaoParcial()
+                    mousePositionX = $event.clientX
+                    mousePositionY = $event.clientY
+
+                    var imagem = vm.ngcWysiwyg.itemSelecionado
+                    widthOriginal = imagem[0].clientWidth;
+                    heightOriginal = imagem[0].clientHeight;
+
+                    $document.on('mousemove', resizeHandler);
+                    $document.on('mouseup', desativarResize);
+                }
+                function resizeHandler($event) {
+                    $scope.$apply(function () {
+                        resize($event)
+                    })
+                }
+
+                function desativarResize() {
+                    vm.ngcWysiwyg.imageResizing = false;
+                    stepGravando.finalizar();
+                    resizeSimetrico = false;
+                    removerEventListeners()
+                }
+                function containsTipo(array, tipo) {
+                    tipo = tipo || botaoTipo;
+                    return array.indexOf(tipo) !== -1;
+                }
+                function isBotaoDiagonal(tipo) {
+                    return containsTipo(['top-right', 'top-left', 'bottom-right', 'bottom-left'], tipo)
+                }
+                function isBotaoLadoDireito(tipo) {
+                    return containsTipo(["top-right", "right", "bottom-right"], tipo)
+                }
+                function isBotaoLadoEsquerdo(tipo) {
+                    return containsTipo(["top-left", "left", "bottom-left"], tipo)
+                }
+                function isBotaoCima(tipo) {
+                    return containsTipo(["top-left", "top", "top-right"], tipo)
+                }
+                function isBotaoBaixo(tipo) {
+                    tipo = tipo || botaoTipo;
+                    return ["bottom-left", "bottom", "bottom-right"].indexOf(tipo) !== -1;
+                }
+                function resize($event) {
+                    var imagem = vm.ngcWysiwyg.itemSelecionado
+
+
+                    var moveX = isBotaoLadoEsquerdo() ? mousePositionX - $event.clientX : $event.clientX - mousePositionX
+                    var moveY = isBotaoCima() ? mousePositionY - $event.clientY : $event.clientY - mousePositionY
+                    if ($event.ctrlKey && isBotaoDiagonal()) {
+                        if (!resizeSimetrico) {
+                            // Transforma o tamanho atual para um tamanho simétrico
+                            var widthAtual = imagem[0].clientWidth;
+                            moveX = widthAtual - widthOriginal;
+                        }
+                        // ativa a flag para não transformar novamente
+                        resizeSimetrico = true;
+                        // iguala o moveY e moveX para que heigth e width cresçam proporcionalmente
+                        moveY = moveX
+                    } else {
+                        resizeSimetrico = false;
+                    }
+
+                    var novaWidth = widthOriginal + moveX
+                    var novoHeight = heightOriginal + moveY
+                    if (isBotaoLadoDireito() || isBotaoLadoEsquerdo()) {
+                        var containerWidth = parseInt(getComputedStyle(vm.ngcWysiwyg.divEditableElement[0]).width.replace('px', ''))
+                        if (novaWidth < containerWidth) {
+                            imagem.css('width', novaWidth)
+                        }
+                    }
+
+                    if (isBotaoCima() || isBotaoBaixo()) {
+                        imagem.css('height', novoHeight)
+                    }
+
+                }
+                vm.botoes = [
+                    {
+                        icone: 'format_bold',
+                        callback: function () {
+                            document.execCommand('bold', null, false);
+                        }
+                    },
+                    {
+                        icone: 'format_italic',
+                        callback: function () {
+                            document.execCommand('italic', null, false);
+                        }
+                    },
+                    {
+                        icone: 'format_strikethrough',
+                        callback: function () {
+                            document.execCommand('strikeThrough', null, false);
+                        }
+                    },
+                    {
+                        icone: 'format_underlined',
+                        callback: function () {
+                            document.execCommand('underline', null, false);
+                        }
+                    }
+                ]
             }
         }
 
@@ -999,13 +1015,7 @@
             }
 
         }
-        this.$onInit = function init() {
-
-        }
     }
-
-
-
 
 }());
 (function () {
