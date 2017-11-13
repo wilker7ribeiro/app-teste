@@ -20,28 +20,33 @@
                     canUndo: canUndo,
                     redo: redo,
                     canRedo: canRedo,
-                    configurarGravacaoContinua: function() {
+                    configurarGravacaoContinua: function () {
                         var controller = this;
                         this.gravacaoContinua = {
-                            iniciar: function () {
+                            iniciar: function (disableTimeout) {
                                 if (!this.gravando) {
                                     console.log('iniciar')
                                     var gravacao = this;
                                     this.timeoutTime = 1500;
                                     this.rangeInicial = iniciarGravacao()
                                     this.gravando = true
-                                    this.timeout = $timeout(function () {
-                                        gravacao.finalizar();
-                                    }, this.timeoutTime)
+                                    this.disableTimeout = disableTimeout;
+                                    if (!disableTimeout) {
+                                        this.timeout = $timeout(function () {
+                                            gravacao.finalizar();
+                                        }, this.timeoutTime)
+                                    }
                                 }
                             },
                             refreshTimeout: function () {
                                 var gravacao = this;
                                 console.log('refresh')
                                 $timeout.cancel(this.timeout)
-                                this.timeout = $timeout(function () {
-                                    gravacao.finalizar();
-                                }, this.timeoutTime)
+                                if (!this.disableTimeout) {
+                                    this.timeout = $timeout(function () {
+                                        gravacao.finalizar();
+                                    }, this.timeoutTime)
+                                }
                             },
                             finalizar: function () {
                                 if (this.gravando) {

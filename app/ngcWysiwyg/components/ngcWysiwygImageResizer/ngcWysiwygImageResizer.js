@@ -43,7 +43,7 @@
                     $event.preventDefault();
                     vm.ngcWysiwyg.imageResizing = true;
                     botaoTipo = botao;
-                    stepGravando = vm.ngcWysiwyg.undoController.iniciarGravacaoParcial()
+                    vm.ngcWysiwyg.undoController.gravacaoContinua.iniciar(true)
                     mousePositionX = $event.clientX
                     mousePositionY = $event.clientY
 
@@ -62,7 +62,7 @@
 
                 function desativarResize() {
                     vm.ngcWysiwyg.imageResizing = false;
-                    stepGravando.finalizar();
+                    vm.ngcWysiwyg.undoController.gravacaoContinua.finalizar();
                     resizeSimetrico = false;
                     removerEventListeners()
                 }
