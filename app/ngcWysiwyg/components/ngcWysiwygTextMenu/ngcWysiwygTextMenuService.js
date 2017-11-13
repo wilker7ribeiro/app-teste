@@ -11,11 +11,11 @@
         this.bold = bold;
 
 
-        function bold(UndoController) {
+        function bold(NgcWysiwyg) {
+            NgcWysiwyg.undoController.gravacaoContinua.finalizar();
             var range = NgcWysiwygUtilService.getRange()
-            UndoController.gravacaoContinua.finalizar();
             if (range.collapsed) {
-                UndoController.gravacaoContinua.iniciar();
+                NgcWysiwyg.undoController.gravacaoContinua.iniciar();
                 console.log('collapsed')
                 var jaTem = NgcWysiwygUtilService.queryCommand('bold')
                 if (!jaTem) {
@@ -34,7 +34,7 @@
                         console.log('nada escrito')
                     } else {
                         //if(range.startContainer.nextSibling.nodeType === Node.TEXT_NODE){
-                        document.execCommand('bold', true, false)
+                        //document.execCommand('bold', true, false)
                         var textoDireita = range.startContainer.parentNode.nextSibling
                         if (textoDireita) {
                             textoDireita.textContent = '\u200B' + textoDireita.textContent
@@ -43,10 +43,10 @@
                             range.startContainer.parentNode.parentNode.append(newNode)
                             textoDireita = newNode;
                         }
-                        range.setStart(textoDireita, 1);
-                        range.setEnd(textoDireita, 1);
+                        // range.setStart(textoDireita, 1);
+                        // range.setEnd(textoDireita, 1);
                         //textoMaisPerto.innerHTML = '&#8203;'+ textoMaisPerto.innerHTML
-                        //NgcWysiwygUtilService.setRange(textoMaisPerto, 1, textoMaisPerto, 1)
+                        NgcWysiwygUtilService.setRange(textoDireita, 1, textoDireita, 1)
 
                         //}
                         console.log('tem coisa escrita')
@@ -54,7 +54,7 @@
                 }
             } else {
                 console.log('não collapsed')
-                UndoController.gravarPasso(function () {
+                NgcWysiwyg.undoController.gravarPasso(function () {
                     document.execCommand('bold', null, false);
                 })
 

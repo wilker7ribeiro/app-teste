@@ -39,7 +39,9 @@
 
             vm.botoes = [
                 {
-                    callback: NgcWysiwygTextMenuService.bold,
+                    callback: function () {
+                        NgcWysiwygTextMenuService.bold(vm.ngcWysiwyg)
+                    },
                     icone: "format_bold",
                     titulo: "Negrito",
                     active: function () {

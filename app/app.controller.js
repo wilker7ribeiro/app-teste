@@ -3,7 +3,7 @@ angular.module('myApp', ['ngMaterial', 'ngMessages', 'ngSanitize'
       //, 'ckeditor'
       // 'ngc-passo-a-passo',
 ]);
-angular.module('myApp').controller('appCtrl', function ($scope, $http, NgcWysiwygUtilService) {
+angular.module('myApp').controller('appCtrl', function ($scope, $http) {
       //$tical : false;
 
       $scope.options = {

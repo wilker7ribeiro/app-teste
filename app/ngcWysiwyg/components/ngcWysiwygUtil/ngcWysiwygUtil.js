@@ -21,39 +21,66 @@
             this.getNearestTextNode = getNearestTextNode;
             this.queryCommand = queryCommand;
             this.normalize = normalize;
+            this.getRangeInTextNode = getRangeInTextNode;
 
-            function normalize(nodeInicial, nodeSelected, offset) {
-                    var retorno = {};
+            function getRangeInTextNode(range, final) {
 
-                    if (!nodeInicial) { return; }
-                    var block = nodeInicial.firstChild
-                    while (block) {
-                        if (block.nodeType === Node.TEXT_NODE) {
-                            if (block === nodeSelected) {
-                                retorno.nodeSelected = block;
-                                retorno.offset = offset;
-                            }
-                            var nodeIrmao = block.nextSibling
-                            while (nodeIrmao && nodeIrmao.nodeType === Node.TEXT_NODE) {
-                                if (nodeIrmao === nodeSelected) {
-                                    retorno.nodeSelected = block;
-                                    retorno.offset = block.nodeValue.length + offset;
-                                }
-                                block.nodeValue += nodeIrmao.nodeValue;
-                                nodeInicial.removeChild(nodeIrmao);
-                                nodeIrmao = block.nextSibling;
-                            }
-                        }
-                        block = block.nextSibling
-                    }
-                    if (Object.keys(retorno).length <= 0) {
-                        retorno = {
-                            nodeSelected: nodeSelected,
-                            offset: offset
-                        }
-                    }
-                    return retorno;
+                var nodeInicial = final ? range.endContainer : range.startContainer
+                if (!isInsideContentEditable()) {
+                    return null
                 }
+                var offset = final ? range.endOffset : range.startOffset;
+                var node = nodeInicial;
+                while (node && node.nodeType !== Node.TEXT_NODE) {
+                    node = node.childNodes[offset - 1]
+                }
+                if (!node) {
+                    node = final ? range.endContainer : range.startContainer
+                    offset = final ? range.endOffset : range.startOffset;
+                } else if (node !== nodeInicial && node.nodeType === Node.TEXT_NODE) {
+                    offset = final ? node.textContent.length : 0
+                }
+                var parent = node.parentNode;
+                var length = node.textContent.length
+                return {
+                    node: node,
+                    offset: offset,
+                    parent: parent,
+                    length: length
+                }
+            }
+            function normalize(nodeInicial, nodeSelected, offset) {
+                var retorno = {};
+
+                if (!nodeInicial) { return; }
+                var block = nodeInicial.firstChild
+                while (block) {
+                    if (block.nodeType === Node.TEXT_NODE) {
+                        if (block === nodeSelected) {
+                            retorno.nodeSelected = block;
+                            retorno.offset = offset;
+                        }
+                        var nodeIrmao = block.nextSibling
+                        while (nodeIrmao && nodeIrmao.nodeType === Node.TEXT_NODE) {
+                            if (nodeIrmao === nodeSelected) {
+                                retorno.nodeSelected = block;
+                                retorno.offset = block.nodeValue.length + offset;
+                            }
+                            block.nodeValue += nodeIrmao.nodeValue;
+                            nodeInicial.removeChild(nodeIrmao);
+                            nodeIrmao = block.nextSibling;
+                        }
+                    }
+                    block = block.nextSibling
+                }
+                if (Object.keys(retorno).length <= 0) {
+                    retorno = {
+                        nodeSelected: nodeSelected,
+                        offset: offset
+                    }
+                }
+                return retorno;
+            }
 
             function queryCommand(type, alternativo) {
                 if (getRange()) {
@@ -67,7 +94,7 @@
             }
             function getSelectedText() {
                 var range = getRange()
-                if(range){
+                if (range) {
                     return range.cloneContents().textContent
                 }
                 return null;

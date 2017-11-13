@@ -94,7 +94,7 @@
                         scope.$apply(function () {
                             if (event.ctrlKey) {
                                 if (event.key == 'b') {
-                                    NgcWysiwygTextMenuService.bold(ngcWysiwyg.undoController)
+                                    NgcWysiwygTextMenuService.bold(ngcWysiwyg)
                                     event.preventDefault()
                                 }
                                 if (event.key === 'Backspace' || event.key === 'Delete' || event.key === 'Del') {

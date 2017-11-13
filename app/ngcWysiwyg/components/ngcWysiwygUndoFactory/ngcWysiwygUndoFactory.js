@@ -20,7 +20,7 @@
                     canUndo: canUndo,
                     redo: redo,
                     canRedo: canRedo,
-                    configurarGravacaoContinua() {
+                    configurarGravacaoContinua: function() {
                         var controller = this;
                         this.gravacaoContinua = {
                             iniciar: function () {
@@ -85,32 +85,7 @@
 
 
 
-                function prepararRange(range, final) {
 
-                    var nodeInicial = final ? range.endContainer : range.startContainer
-                    if (!NgcWysiwygUtilService.isInsideContentEditable(node)) {
-                        return null
-                    }
-                    var offset = final ? range.endOffset : range.startOffset;
-                    var node = nodeInicial;
-                    while (node && node.nodeType !== Node.TEXT_NODE) {
-                        node = node.childNodes[offset - 1]
-                    }
-                    if (!node) {
-                        node = final ? range.endContainer : range.startContainer
-                        offset = final ? range.endOffset : range.startOffset;
-                    } else if (node !== nodeInicial && node.nodeType === Node.TEXT_NODE) {
-                        offset = final ? node.textContent.length : 0
-                    }
-                    var parent = node.parentNode;
-                    var length = node.textContent.length
-                    return {
-                        node: node,
-                        offset: offset,
-                        parent: parent,
-                        length: length
-                    }
-                }
                 function montarRange() {
 
 
@@ -119,8 +94,8 @@
                         return null;
                     }
                     var selectedText = NgcWysiwygUtilService.getSelectedText()
-                    var originalStart = prepararRange(range, false)
-                    var originalEnd = prepararRange(range, true)
+                    var originalStart = NgcWysiwygUtilService.getRangeInTextNode(range, false)
+                    var originalEnd = NgcWysiwygUtilService.getRangeInTextNode(range, true)
 
                     if (!originalEnd || !originalStart) {
                         return null
