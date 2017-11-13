@@ -3,6 +3,91 @@
 
     angular
         .module('myApp')
+        .component('ngcWysiwygAlignMenu', component());
+
+    function component() {
+
+        return {
+            controller: componentController,
+            controllerAs: 'vm',
+            templateUrl: './public/ngcWysiwygAlignMenu/ngcWysiwygAlignMenu.html',
+            require: {
+                ngcWysiwyg: '^^ngcWysiwyg'
+            },
+            bindings: {
+                disabled: '<'
+            }
+        }
+
+        function componentController(NgcWysiwygUtilService) {
+            var vm = this;
+            function isCursorText(type, alternativo) {
+                 return NgcWysiwygUtilService.queryCommand(type, alternativo);
+            }
+            vm.botoes = [
+                {
+                    icone: 'format_align_left',
+                    titulo: 'Esquerda',
+                    callback: function () {
+                        document.execCommand('justifyLeft', null, false);
+                    },
+                    active: function(){
+                        return isCursorText('justifyLeft', "left");
+                    }
+                },
+                {
+                    icone: 'format_align_right',
+                    titulo: 'Direita',
+                    callback: function () {
+                        document.execCommand('justifyRight', null, false);
+                    },
+                    active: function(){
+                        return isCursorText('justifyRight', "right");
+                    }
+                },
+                {
+                    icone: 'format_align_justify',
+                    titulo: 'Justificado',
+                    callback: function () {
+                        document.execCommand('justifyFull', null, false);
+                    },
+                    active: function(){
+                        return isCursorText('justifyFull', "justify");
+                    }
+                },
+                {
+                    icone: 'format_align_center',
+                    titulo: 'Centro',
+                    callback: function () {
+                        document.execCommand('justifyCenter', null, false);
+                    },
+                    active: function(){
+                        return isCursorText('justifyCenter', "center");
+                    }
+                },
+                {
+                    icone: 'add',
+                    titulo: 'ADICIONAR IMAGEM',
+                    callback: function () {
+                        document.execCommand('insertImage', null, 'https://www.espacoblog.com/wp-content/uploads/2013/03/978.png');
+                    }
+                }
+            ]
+            this.$onInit = function init() {
+                vm.disabled = function() {
+                    return vm.ngcWysiwyg.imagemSelecionada
+                }
+            }
+
+        }
+    }
+
+}());
+(function () {
+    'use strict';
+
+    angular
+        .module('myApp')
         .component('ngcWysiwyg', component());
 
     function component() {
@@ -117,91 +202,6 @@
     }
 
 
-
-}());
-(function () {
-    'use strict';
-
-    angular
-        .module('myApp')
-        .component('ngcWysiwygAlignMenu', component());
-
-    function component() {
-
-        return {
-            controller: componentController,
-            controllerAs: 'vm',
-            templateUrl: './public/ngcWysiwygAlignMenu/ngcWysiwygAlignMenu.html',
-            require: {
-                ngcWysiwyg: '^^ngcWysiwyg'
-            },
-            bindings: {
-                disabled: '<'
-            }
-        }
-
-        function componentController(NgcWysiwygUtilService) {
-            var vm = this;
-            function isCursorText(type, alternativo) {
-                 return NgcWysiwygUtilService.queryCommand(type, alternativo);
-            }
-            vm.botoes = [
-                {
-                    icone: 'format_align_left',
-                    titulo: 'Esquerda',
-                    callback: function () {
-                        document.execCommand('justifyLeft', null, false);
-                    },
-                    active: function(){
-                        return isCursorText('justifyLeft', "left");
-                    }
-                },
-                {
-                    icone: 'format_align_right',
-                    titulo: 'Direita',
-                    callback: function () {
-                        document.execCommand('justifyRight', null, false);
-                    },
-                    active: function(){
-                        return isCursorText('justifyRight', "right");
-                    }
-                },
-                {
-                    icone: 'format_align_justify',
-                    titulo: 'Justificado',
-                    callback: function () {
-                        document.execCommand('justifyFull', null, false);
-                    },
-                    active: function(){
-                        return isCursorText('justifyFull', "justify");
-                    }
-                },
-                {
-                    icone: 'format_align_center',
-                    titulo: 'Centro',
-                    callback: function () {
-                        document.execCommand('justifyCenter', null, false);
-                    },
-                    active: function(){
-                        return isCursorText('justifyCenter', "center");
-                    }
-                },
-                {
-                    icone: 'add',
-                    titulo: 'ADICIONAR IMAGEM',
-                    callback: function () {
-                        document.execCommand('insertImage', null, 'https://www.espacoblog.com/wp-content/uploads/2013/03/978.png');
-                    }
-                }
-            ]
-            this.$onInit = function init() {
-                vm.disabled = function() {
-                    return vm.ngcWysiwyg.imagemSelecionada
-                }
-            }
-
-        }
-    }
 
 }());
 (function () {
@@ -339,6 +339,12 @@
                         // inicia a gravação do step, para salvar primeiro a seleção
                         // deletar
                         scope.$apply(function () {
+                            // if (event.key == 'Tab') {
+                            //     ngcWysiwyg.undoController.gravarPasso(function () {
+                            //         NgcWysiwygUtilService.getRange().startContainer.data = '&#9;' + NgcWysiwygUtilService.getRange().startContainer.data
+                            //     });
+                            //     event.preventDefault()
+                            // }
                             if (event.ctrlKey) {
                                 if (event.key == 'b') {
                                     NgcWysiwygTextMenuService.bold(ngcWysiwyg)
@@ -973,7 +979,9 @@
                     }
                 },
                 {
-                    callback: vm.setItalic,
+                    callback: function () {
+                        NgcWysiwygTextMenuService.italic(vm.ngcWysiwyg)
+                    },
                     icone: "format_italic",
                     titulo: "Itálico",
                     active: function () {
@@ -981,7 +989,9 @@
                     }
                 },
                 {
-                    callback: vm.setStrikeThrough,
+                    callback: function () {
+                        NgcWysiwygTextMenuService.strikeThrough(vm.ngcWysiwyg)
+                    },
                     icone: "format_strikethrough",
                     titulo: "Riscado",
                     active: function () {
@@ -1049,76 +1059,20 @@
     /** @ngInject */
     function NgcWysiwygTextMenuService(NgcWysiwygUtilService) {
 
-        this.bold = bold;
+        this.bold = function (NgcWysiwyg) {
+            NgcWysiwygUtilService.aplicarEstilo(NgcWysiwyg, 'bold', 'b', 'strong')
+        };
+        this.italic = function (NgcWysiwyg) {
+            NgcWysiwygUtilService.aplicarEstilo(NgcWysiwyg, 'italic', 'i', 'em')
+        };
+        this.strikeThrough = function (NgcWysiwyg) {
+            NgcWysiwygUtilService.aplicarEstilo(NgcWysiwyg, 'strikeThrough', 'strike')
+        };
 
 
-        function bold(NgcWysiwyg) {
-            var ua = window.navigator.userAgent;
-            var isIE = ua.indexOf("MSIE ") > 0 || !!ua.match(/Trident.*rv:11\./);
-            var tagName = 'b'
-            if (isIE) {
-                tagName = 'strong'
-            }
-            var commandName = 'bold'
-            NgcWysiwyg.undoController.gravacaoContinua.finalizar();
-            var range = NgcWysiwygUtilService.getRange()
-            if (range.collapsed) {
-                NgcWysiwyg.undoController.gravacaoContinua.iniciar();
-                var estaComEfeito = NgcWysiwygUtilService.queryCommand(commandName)
-                if (!estaComEfeito) {
-                    if (range.startContainer.textContent.replace(/\u200B/g, '').length > 0) {
-                        var commandElement = document.createElement(tagName)
-                        range.surroundContents(commandElement)
-                        commandElement.innerHTML = '&#8203;';
 
-                        NgcWysiwygUtilService.setRange(commandElement.childNodes[0], 1, commandElement.childNodes[0], 1)
-                    } else if (range.startContainer.previousSibling && range.startContainer.previousSibling.nodeName.toLowerCase() === tagName && range.startContainer.nextSibling && range.startContainer.nextSibling.nodeName.toLowerCase() === tagName) {
-                        var previous = range.startContainer.previousSibling
-                        var next = range.startContainer.nextSibling
-                        range.startContainer.remove ? range.startContainer.remove() : range.startContainer.removeNode(true)
-                        var offset = previous.childNodes[0].length
-                        previous.textContent = previous.textContent + next.textContent;
-                        next.remove ? next.remove() : next.removeNode(true);
-                        NgcWysiwygUtilService.setRange(previous.childNodes[0], offset, previous.childNodes[0], offset)
-                    }
-                } else {
-                    // tratamento pra quando tem coisa escrita
-                    if (range.startContainer.textContent.replace(/\u200B/g, '').length > 0) {
-                        // ta no final do bold
-                        if (range.startContainer.length === range.startOffset) {
-                            var textoDireita = range.startContainer.parentNode.nextSibling
-                            if (textoDireita) {
-                                textoDireita.textContent = '\u200B' + textoDireita.textContent
-                            } else {
-                                // não testado
-                                var newTextNode = document.createTextNode('\u200B');
-                                range.startContainer.parentNode.parentNode.appendChild(newTextNode)
-                                textoDireita = newTextNode;
-                            }
-                            NgcWysiwygUtilService.setRange(textoDireita, 1, textoDireita, 1)
-                        } else {
-                            var selectedText = range.startContainer.data.slice(range.startOffset);
-                            var startTextNode = range.startContainer
-                            startTextNode.data = startTextNode.data.slice(0, range.startOffset)
-                            var commandElementDireita = document.createElement(tagName)
-                            var newTextNode = document.createTextNode('\u200B');
-                            commandElementDireita.textContent = selectedText
-                            startTextNode.parentNode.parentNode.insertBefore(newTextNode, startTextNode.parentNode.nextSibling);
-                            newTextNode.parentNode.insertBefore(commandElementDireita, newTextNode.nextSibling);
-                            NgcWysiwygUtilService.setRange(newTextNode, 1, newTextNode, 1)
-                            //console.log('no meio')
-                        }
-                    } else {
-                        // quando não tem nada escrito o execcommand consegue se virar
-                        document.execCommand(commandName, null, false);
-                    }
-                }
-            } else {
-                NgcWysiwyg.undoController.gravarPasso(function () {
-                    document.execCommand(commandName, null, false);
-                })
-            }
-        }
+
+
 
 
     }
@@ -1431,7 +1385,84 @@
             this.queryCommand = queryCommand;
             this.normalize = normalize;
             this.getRangeInTextNode = getRangeInTextNode;
+            this.aplicarEstilo = aplicarEstilo;
 
+            function estaEntreTags(tagName, rangeOpt) {
+                var range = rangeOpt || getRange()
+                var tagAnteriorEh = range.startContainer.previousSibling && range.startContainer.previousSibling.nodeName.toLowerCase() === tagName
+                var tagPosteriorEh = range.startContainer.nextSibling && range.startContainer.nextSibling.nodeName.toLowerCase() === tagName
+                return tagAnteriorEh && tagPosteriorEh
+            }
+            function aplicarEstilo(NgcWysiwyg, command, tag, ieTag) {
+                var ua = window.navigator.userAgent;
+                var isIE = ua.indexOf("MSIE ") > 0 || !!ua.match(/Trident.*rv:11\./);
+                var tagName = tag
+                if (isIE && ieTag) {
+                    tagName = ieTag
+                }
+                var commandName = command
+                NgcWysiwyg.undoController.gravacaoContinua.finalizar();
+                var range = getRange()
+                if (range.collapsed) {
+                    NgcWysiwyg.undoController.gravacaoContinua.iniciar();
+                    var estaComEfeito = queryCommand(commandName)
+                    if (!estaComEfeito) {
+                        // se não tiver vazio, cria a tag e seleciona ela, ou não está entre tags do mesmo efeito
+                        if (range.startContainer.textContent.replace(/\u200B/g, '').length > 0 || !estaEntreTags(tagName, range)) {
+                            var commandElement = document.createElement(tagName)
+                            range.surroundContents(commandElement)
+                            commandElement.innerHTML = '&#8203;';
+
+                            setRange(commandElement.childNodes[0], 1, commandElement.childNodes[0], 1)
+                            // não ta com efeito, ta vazio, e ta no meio de duas tags do mesmo efeito, junta
+                        } else {
+                            var previous = range.startContainer.previousSibling
+                            var next = range.startContainer.nextSibling
+                            range.startContainer.remove ? range.startContainer.remove() : range.startContainer.removeNode(true)
+                            var offset = previous.childNodes[0].length
+                            previous.textContent = previous.textContent + next.textContent;
+                            next.remove ? next.remove() : next.removeNode(true);
+                            setRange(previous.childNodes[0], offset, previous.childNodes[0], offset)
+                        }
+                    } else {
+                        // tratamento pra quando tem coisa escrita
+                        if (range.startContainer.textContent.replace(/\u200B/g, '').length > 0) {
+                            // ta no final do bold
+                            if (range.startContainer.length === range.startOffset) {
+                                var textoDireita = range.startContainer.parentNode.nextSibling
+                                if (textoDireita) {
+                                    textoDireita.textContent = '\u200B' + textoDireita.textContent
+                                } else {
+                                    // não testado
+                                    var newTextNode = document.createTextNode('\u200B');
+                                    range.startContainer.parentNode.parentNode.appendChild(newTextNode)
+                                    textoDireita = newTextNode;
+                                }
+                                setRange(textoDireita, 1, textoDireita, 1)
+                            } else {
+                                var selectedText = range.startContainer.data.slice(range.startOffset);
+                                var startTextNode = range.startContainer
+                                startTextNode.data = startTextNode.data.slice(0, range.startOffset)
+                                var commandElementDireita = document.createElement(tagName)
+                                var newTextNode = document.createTextNode('\u200B');
+                                commandElementDireita.textContent = selectedText
+                                startTextNode.parentNode.parentNode.insertBefore(newTextNode, startTextNode.parentNode.nextSibling);
+                                newTextNode.parentNode.insertBefore(commandElementDireita, newTextNode.nextSibling);
+                                setRange(newTextNode, 1, newTextNode, 1)
+                                //console.log('no meio')
+                            }
+                        } else {
+                            // quando não tem nada escrito o execcommand consegue se virar
+                            // Não se estiver tipo <b><i><strike>AQUI</strike></i></b>;
+                            document.execCommand(commandName, null, false);
+                        }
+                    }
+                } else {
+                    NgcWysiwyg.undoController.gravarPasso(function () {
+                        document.execCommand(commandName, null, false);
+                    })
+                }
+            }
             function getRangeInTextNode(range, final) {
 
                 var nodeInicial = final ? range.endContainer : range.startContainer

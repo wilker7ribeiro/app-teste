@@ -49,7 +49,9 @@
                     }
                 },
                 {
-                    callback: vm.setItalic,
+                    callback: function () {
+                        NgcWysiwygTextMenuService.italic(vm.ngcWysiwyg)
+                    },
                     icone: "format_italic",
                     titulo: "Itálico",
                     active: function () {
@@ -57,7 +59,9 @@
                     }
                 },
                 {
-                    callback: vm.setStrikeThrough,
+                    callback: function () {
+                        NgcWysiwygTextMenuService.strikeThrough(vm.ngcWysiwyg)
+                    },
                     icone: "format_strikethrough",
                     titulo: "Riscado",
                     active: function () {

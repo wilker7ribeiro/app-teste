@@ -22,7 +22,84 @@
             this.queryCommand = queryCommand;
             this.normalize = normalize;
             this.getRangeInTextNode = getRangeInTextNode;
+            this.aplicarEstilo = aplicarEstilo;
 
+            function estaEntreTags(tagName, rangeOpt) {
+                var range = rangeOpt || getRange()
+                var tagAnteriorEh = range.startContainer.previousSibling && range.startContainer.previousSibling.nodeName.toLowerCase() === tagName
+                var tagPosteriorEh = range.startContainer.nextSibling && range.startContainer.nextSibling.nodeName.toLowerCase() === tagName
+                return tagAnteriorEh && tagPosteriorEh
+            }
+            function aplicarEstilo(NgcWysiwyg, command, tag, ieTag) {
+                var ua = window.navigator.userAgent;
+                var isIE = ua.indexOf("MSIE ") > 0 || !!ua.match(/Trident.*rv:11\./);
+                var tagName = tag
+                if (isIE && ieTag) {
+                    tagName = ieTag
+                }
+                var commandName = command
+                NgcWysiwyg.undoController.gravacaoContinua.finalizar();
+                var range = getRange()
+                if (range.collapsed) {
+                    NgcWysiwyg.undoController.gravacaoContinua.iniciar();
+                    var estaComEfeito = queryCommand(commandName)
+                    if (!estaComEfeito) {
+                        // se não tiver vazio, cria a tag e seleciona ela, ou não está entre tags do mesmo efeito
+                        if (range.startContainer.textContent.replace(/\u200B/g, '').length > 0 || !estaEntreTags(tagName, range)) {
+                            var commandElement = document.createElement(tagName)
+                            range.surroundContents(commandElement)
+                            commandElement.innerHTML = '&#8203;';
+
+                            setRange(commandElement.childNodes[0], 1, commandElement.childNodes[0], 1)
+                            // não ta com efeito, ta vazio, e ta no meio de duas tags do mesmo efeito, junta
+                        } else {
+                            var previous = range.startContainer.previousSibling
+                            var next = range.startContainer.nextSibling
+                            range.startContainer.remove ? range.startContainer.remove() : range.startContainer.removeNode(true)
+                            var offset = previous.childNodes[0].length
+                            previous.textContent = previous.textContent + next.textContent;
+                            next.remove ? next.remove() : next.removeNode(true);
+                            setRange(previous.childNodes[0], offset, previous.childNodes[0], offset)
+                        }
+                    } else {
+                        // tratamento pra quando tem coisa escrita
+                        if (range.startContainer.textContent.replace(/\u200B/g, '').length > 0) {
+                            // ta no final do bold
+                            if (range.startContainer.length === range.startOffset) {
+                                var textoDireita = range.startContainer.parentNode.nextSibling
+                                if (textoDireita) {
+                                    textoDireita.textContent = '\u200B' + textoDireita.textContent
+                                } else {
+                                    // não testado
+                                    var newTextNode = document.createTextNode('\u200B');
+                                    range.startContainer.parentNode.parentNode.appendChild(newTextNode)
+                                    textoDireita = newTextNode;
+                                }
+                                setRange(textoDireita, 1, textoDireita, 1)
+                            } else {
+                                var selectedText = range.startContainer.data.slice(range.startOffset);
+                                var startTextNode = range.startContainer
+                                startTextNode.data = startTextNode.data.slice(0, range.startOffset)
+                                var commandElementDireita = document.createElement(tagName)
+                                var newTextNode = document.createTextNode('\u200B');
+                                commandElementDireita.textContent = selectedText
+                                startTextNode.parentNode.parentNode.insertBefore(newTextNode, startTextNode.parentNode.nextSibling);
+                                newTextNode.parentNode.insertBefore(commandElementDireita, newTextNode.nextSibling);
+                                setRange(newTextNode, 1, newTextNode, 1)
+                                //console.log('no meio')
+                            }
+                        } else {
+                            // quando não tem nada escrito o execcommand consegue se virar
+                            // Não se estiver tipo <b><i><strike>AQUI</strike></i></b>;
+                            document.execCommand(commandName, null, false);
+                        }
+                    }
+                } else {
+                    NgcWysiwyg.undoController.gravarPasso(function () {
+                        document.execCommand(commandName, null, false);
+                    })
+                }
+            }
             function getRangeInTextNode(range, final) {
 
                 var nodeInicial = final ? range.endContainer : range.startContainer

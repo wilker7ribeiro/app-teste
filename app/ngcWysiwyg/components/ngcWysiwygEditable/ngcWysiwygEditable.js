@@ -92,6 +92,12 @@
                         // inicia a gravação do step, para salvar primeiro a seleção
                         // deletar
                         scope.$apply(function () {
+                            // if (event.key == 'Tab') {
+                            //     ngcWysiwyg.undoController.gravarPasso(function () {
+                            //         NgcWysiwygUtilService.getRange().startContainer.data = '&#9;' + NgcWysiwygUtilService.getRange().startContainer.data
+                            //     });
+                            //     event.preventDefault()
+                            // }
                             if (event.ctrlKey) {
                                 if (event.key == 'b') {
                                     NgcWysiwygTextMenuService.bold(ngcWysiwyg)
